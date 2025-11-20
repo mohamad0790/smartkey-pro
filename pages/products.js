@@ -1,44 +1,46 @@
-import { supabase } from "./supabase.js";
+import { supabase } from './supabase.js';
 
-// ======================
-// تحميل الأصناف
-// ======================
+// تحميل الأصناف عند فتح الصفحة
+document.addEventListener("DOMContentLoaded", loadProducts);
+
+// دالة تحميل الأصناف
 async function loadProducts() {
     const table = document.getElementById("productTable");
-    table.innerHTML = "<tr><td colspan='5'>جاري التحميل...</td></tr>";
+    table.innerHTML = "<tr><td colspan='5'>جارِ التحميل...</td></tr>";
 
-    const { data, error } = await supabase.from("products").select("*");
+    const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("id", { ascending: false });
 
     if (error) {
-        table.innerHTML = "<tr><td colspan='5'>خطأ في تحميل البيانات</td></tr>";
-        console.log(error);
+        table.innerHTML = "<tr><td colspan='5'>خطأ أثناء التحميل</td></tr>";
         return;
     }
 
-    table.innerHTML = "";
-
+    let rows = "";
     data.forEach(p => {
-        table.innerHTML += `
+        rows += `
             <tr>
                 <td>${p.code}</td>
                 <td>${p.name}</td>
                 <td>${p.buy}</td>
                 <td>${p.sell}</td>
-                <td><button class="del-btn" onclick="deleteProduct('${p.id}')">حذف</button></td>
+                <td><button class="del-btn" onclick="deleteProduct(${p.id})">حذف</button></td>
             </tr>
         `;
     });
+
+    table.innerHTML = rows || "<tr><td colspan='5'>لا توجد أصناف</td></tr>";
 }
 
-// ======================
-// إضافة صنف جديد
-// ======================
-document.getElementById("addForm").addEventListener("submit", async function(e) {
+// دالة إضافة صنف جديد
+document.getElementById("addForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const name = document.getElementById("name").value;
     const code = document.getElementById("code").value;
-    const buy  = document.getElementById("buy").value;
+    const buy = document.getElementById("buy").value;
     const sell = document.getElementById("sell").value;
 
     const { error } = await supabase.from("products").insert([
@@ -46,33 +48,29 @@ document.getElementById("addForm").addEventListener("submit", async function(e) 
     ]);
 
     if (error) {
-        alert("خطأ في إضافة الصنف");
-        console.log(error);
+        alert("خطأ: لم يتم إضافة الصنف");
         return;
     }
 
-    alert("تم إضافة الصنف ✔");
-    this.reset();
+    alert("تمت إضافة الصنف بنجاح");
     loadProducts();
+    e.target.reset();
 });
 
-// ======================
-// حذف الصنف
-// ======================
-window.deleteProduct = async function(id) {
-    if (!confirm("هل تريد حذف الصنف؟")) return;
+// دالة حذف صنف
+async function deleteProduct(id) {
+    if (!confirm("هل تريد حذف هذا الصنف؟")) return;
 
-    const { error } = await supabase.from("products").delete().eq("id", id);
+    const { error } = await supabase
+        .from("products")
+        .delete()
+        .eq("id", id);
 
     if (error) {
-        alert("خطأ في الحذف");
-        console.log(error);
+        alert("فشل الحذف");
         return;
     }
 
-    alert("تم حذف الصنف ✔");
+    alert("تم الحذف بنجاح");
     loadProducts();
-};
-
-// تحميل عند فتح الصفحة
-loadProducts();
+}
