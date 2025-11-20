@@ -1,68 +1,102 @@
-// ========= إعداد Supabase ==========
-const SUPABASE_URL = "https://qvnxhqqewluqcdddltiw.supabase.co";
-const SUPABASE_KEY = "EYJHBGCI... (اكتب المفتاح الكامل هنا)";
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+import { supabase } from "./supabase.js";
 
-// ========= عناصر HTML ==========
-const form = document.getElementById("addForm");
-const table = document.getElementById("productTable");
+// =========================
+//  تحميل جميع الأصناف
+// =========================
+async function loadProducts() {
+  const tableBody = document.querySelector("#productsTableBody");
+  tableBody.innerHTML = `<tr><td colspan="5">جارٍ التحميل...</td></tr>`;
 
-// ========= إضافة صنف ==========
-form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  const { data, error } = await supabase.from("products").select("*");
 
-    const name = document.getElementById("name").value;
-    const code = document.getElementById("code").value;
-    const buy = document.getElementById("buy").value;
-    const sell = document.getElementById("sell").value;
+  if (error) {
+    tableBody.innerHTML = `<tr><td colspan="5">خطأ في تحميل البيانات</td></tr>`;
+    console.error(error);
+    return;
+  }
 
-    const { data, error } = await db
-        .from("products")
-        .insert([{ name, code, buy_price: buy, sell_price: sell }]);
+  tableBody.innerHTML = "";
 
-    if (error) {
-        alert("خطأ أثناء الإضافة: " + error.message);
-        return;
-    }
+  data.forEach((item) => {
+    tableBody.innerHTML += `
+      <tr>
+        <td>${item.id}</td>
+        <td>${item.name}</td>
+        <td>${item.price}</td>
+        <td>${item.quantity}</td>
+        <td>
+          <button onclick="editProduct(${item.id})">✏️ تعديل</button>
+          <button onclick="deleteProduct(${item.id})">🗑 حذف</button>
+        </td>
+      </tr>
+    `;
+  });
+}
 
-    alert("✔️ تم إضافة الصنف بنجاح");
-    form.reset();
-    loadProducts();
+// =========================
+//    إضافة صنف جديد
+// =========================
+document.querySelector("#addProductForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const name = document.querySelector("#name").value;
+  const price = document.querySelector("#price").value;
+  const quantity = document.querySelector("#quantity").value;
+
+  const { error } = await supabase.from("products").insert({
+    name,
+    price,
+    quantity
+  });
+
+  if (error) {
+    alert("خطأ في إضافة الصنف");
+    console.error(error);
+    return;
+  }
+
+  alert("تم إضافة الصنف بنجاح!");
+  loadProducts();
 });
 
-// ========= تحميل الأصناف ==========
-async function loadProducts() {
-    const { data, error } = await db.from("products").select("*");
+// =========================
+//      تعديل صنف
+// =========================
+window.editProduct = async function (id) {
+  const newName = prompt("اسم جديد:");
+  const newPrice = prompt("السعر الجديد:");
+  const newQuantity = prompt("الكمية الجديدة:");
 
-    table.innerHTML = "";
+  const { error } = await supabase
+    .from("products")
+    .update({ name: newName, price: newPrice, quantity: newQuantity })
+    .eq("id", id);
 
-    data.forEach((item) => {
-        table.innerHTML += `
-        <tr>
-            <td>${item.code}</td>
-            <td>${item.name}</td>
-            <td>${item.buy_price}</td>
-            <td>${item.sell_price}</td>
-            <td><button class="del-btn" onclick="del(${item.id})">🗑 حذف</button></td>
-        </tr>
-        `;
-    });
-}
+  if (error) {
+    alert("خطأ في تعديل الصنف");
+    return;
+  }
 
-// ========= حذف صنف ==========
-async function del(id) {
-    const sure = confirm("هل أنت متأكد من حذف الصنف؟");
-    if (!sure) return;
+  alert("تم تعديل الصنف!");
+  loadProducts();
+};
 
-    const { error } = await db.from("products").delete().eq("id", id);
+// =========================
+//        حذف صنف
+// =========================
+window.deleteProduct = async function (id) {
+  if (!confirm("هل تريد حذف الصنف؟")) return;
 
-    if (error) {
-        alert("خطأ أثناء الحذف");
-        return;
-    }
+  const { error } = await supabase.from("products").delete().eq("id", id);
 
-    loadProducts();
-}
+  if (error) {
+    alert("خطأ في الحذف");
+    return;
+  }
+
+  alert("تم حذف الصنف!");
+  loadProducts();
+};
 
 // تحميل البيانات عند فتح الصفحة
 loadProducts();
