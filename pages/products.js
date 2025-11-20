@@ -6,18 +6,18 @@ window.onload = loadProducts;
 // إضافة صنف جديد
 async function addProduct() {
     const name = document.getElementById("name").value.trim();
-    const code = document.getElementById("code").value.trim();
+    const product_code = document.getElementById("code").value.trim();
     const buy = document.getElementById("buy").value.trim();
     const sell = document.getElementById("sell").value.trim();
 
-    if (!name || !code || !buy || !sell) {
+    if (!name || !product_code || !buy || !sell) {
         alert("الرجاء تعبئة جميع الحقول");
         return;
     }
 
     const { error } = await supabase
-        .from("products_simple")
-        .insert([{ name, code, buy, sell }]);
+        .from("products")
+        .insert([{ name, product_code, buy, sell }]);
 
     if (error) {
         alert("خطأ في الإضافة: " + error.message);
@@ -43,7 +43,7 @@ async function loadProducts() {
     table.innerHTML = "<tr><td colspan='5'>جاري التحميل...</td></tr>";
 
     const { data, error } = await supabase
-        .from("products_simple")
+        .from("products")
         .select("*")
         .order("id", { ascending: false });
 
@@ -58,7 +58,7 @@ async function loadProducts() {
         const row = `
             <tr>
                 <td>${p.name}</td>
-                <td>${p.code}</td>
+                <td>${p.product_code}</td>
                 <td>${p.buy}</td>
                 <td>${p.sell}</td>
                 <td>
@@ -78,7 +78,7 @@ async function deleteProduct(id) {
     if (!confirm("هل تريد حذف الصنف؟")) return;
 
     const { error } = await supabase
-        .from("products_simple")
+        .from("products")
         .delete()
         .eq("id", id);
 
