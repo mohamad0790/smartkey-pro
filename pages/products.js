@@ -7,8 +7,8 @@ window.onload = loadProducts;
 async function addProduct() {
     const name = document.getElementById("name").value.trim();
     const code = document.getElementById("code").value.trim();
-    const buy = document.getElementById("buy").value;
-    const sell = document.getElementById("sell").value;
+    const buy = document.getElementById("buy").value.trim();
+    const sell = document.getElementById("sell").value.trim();
 
     if (!name || !code || !buy || !sell) {
         alert("الرجاء تعبئة جميع الحقول");
@@ -16,7 +16,7 @@ async function addProduct() {
     }
 
     const { error } = await supabase
-        .from("products")
+        .from("products_simple")
         .insert([{ name, code, buy, sell }]);
 
     if (error) {
@@ -43,7 +43,7 @@ async function loadProducts() {
     table.innerHTML = "<tr><td colspan='5'>جاري التحميل...</td></tr>";
 
     const { data, error } = await supabase
-        .from("products")
+        .from("products_simple")
         .select("*")
         .order("id", { ascending: false });
 
@@ -61,7 +61,12 @@ async function loadProducts() {
                 <td>${p.code}</td>
                 <td>${p.buy}</td>
                 <td>${p.sell}</td>
-                <td><button onclick="deleteProduct(${p.id})" style="background:#d9534f;color:white;">حذف</button></td>
+                <td>
+                    <button onclick="deleteProduct(${p.id})" 
+                    style="background:#d9534f;color:white;border:none;padding:5px 10px;border-radius:5px;">
+                        حذف
+                    </button>
+                </td>
             </tr>
         `;
         table.innerHTML += row;
@@ -73,7 +78,7 @@ async function deleteProduct(id) {
     if (!confirm("هل تريد حذف الصنف؟")) return;
 
     const { error } = await supabase
-        .from("products")
+        .from("products_simple")
         .delete()
         .eq("id", id);
 
