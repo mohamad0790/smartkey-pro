@@ -1,42 +1,86 @@
-import { supabase } from './supabase.js';
+import { supabase } from "./supabase.js";
 
-// تحميل المنتجات
-export async function loadProducts() {
-    const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('id', { ascending: false });
+// تحميل الأصناف عند فتح الصفحة
+window.onload = loadProducts;
+
+// إضافة صنف جديد
+async function addProduct() {
+    const name = document.getElementById("name").value.trim();
+    const code = document.getElementById("code").value.trim();
+    const buy = document.getElementById("buy").value;
+    const sell = document.getElementById("sell").value;
+
+    if (!name || !code || !buy || !sell) {
+        alert("الرجاء تعبئة جميع الحقول");
+        return;
+    }
+
+    const { error } = await supabase
+        .from("products")
+        .insert([{ name, code, buy, sell }]);
 
     if (error) {
-        console.error('Error loading products:', error);
-        return [];
+        alert("خطأ في الإضافة: " + error.message);
+        return;
     }
-    return data;
+
+    alert("تم إضافة الصنف بنجاح");
+    clearInputs();
+    loadProducts();
 }
 
-// إضافة منتج جديد
-export async function addProduct(product) {
+// مسح الحقول بعد الإضافة
+function clearInputs() {
+    document.getElementById("name").value = "";
+    document.getElementById("code").value = "";
+    document.getElementById("buy").value = "";
+    document.getElementById("sell").value = "";
+}
+
+// تحميل الأصناف من Supabase
+async function loadProducts() {
+    const table = document.getElementById("products-table");
+    table.innerHTML = "<tr><td colspan='5'>جاري التحميل...</td></tr>";
+
     const { data, error } = await supabase
-        .from('products')
-        .insert([product]);
+        .from("products")
+        .select("*")
+        .order("id", { ascending: false });
 
     if (error) {
-        console.error('Error adding product:', error);
-        return null;
+        table.innerHTML = "<tr><td colspan='5'>حدث خطأ في جلب البيانات</td></tr>";
+        return;
     }
-    return data;
+
+    table.innerHTML = "";
+
+    data.forEach(p => {
+        const row = `
+            <tr>
+                <td>${p.name}</td>
+                <td>${p.code}</td>
+                <td>${p.buy}</td>
+                <td>${p.sell}</td>
+                <td><button onclick="deleteProduct(${p.id})" style="background:#d9534f;color:white;">حذف</button></td>
+            </tr>
+        `;
+        table.innerHTML += row;
+    });
 }
 
-// حذف منتج
-export async function deleteProduct(id) {
-    const { data, error } = await supabase
-        .from('products')
+// حذف صنف
+async function deleteProduct(id) {
+    if (!confirm("هل تريد حذف الصنف؟")) return;
+
+    const { error } = await supabase
+        .from("products")
         .delete()
-        .eq('id', id);
+        .eq("id", id);
 
     if (error) {
-        console.error('Error deleting product:', error);
-        return null;
+        alert("فشل الحذف: " + error.message);
+        return;
     }
-    return data;
+
+    loadProducts();
 }
