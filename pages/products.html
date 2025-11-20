@@ -4,48 +4,57 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>الأصناف - SmartKey Pro</title>
+    <style>
+        body { font-family: Arial; direction: rtl; padding: 20px; background: #f7f7f7; }
+        h1 { text-align: center; }
+        form { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        input, button {
+            width: 100%; padding: 12px; margin: 6px 0;
+            border-radius: 8px; border: 1px solid #ccc;
+        }
+        button {
+            background: #28a745; color: white; font-size: 18px; cursor: pointer;
+        }
+        table {
+            width: 100%; background: white; border-radius: 10px;
+            border-collapse: collapse; margin-top: 20px;
+        }
+        th, td {
+            padding: 12px; border-bottom: 1px solid #ddd; text-align: center;
+        }
+        .del-btn {
+            background: red; color: white; padding: 8px 12px;
+            border: none; border-radius: 6px; cursor: pointer;
+        }
+    </style>
 </head>
 
 <body>
+
     <h1>إدارة الأصناف</h1>
 
-    <h2>إضافة صنف جديد</h2>
-    <form>
-        <label>اسم الصنف:</label><br>
-        <input type="text"><br><br>
+    <form id="addForm">
+        <input type="text" id="name" placeholder="اسم الصنف" required>
+        <input type="text" id="code" placeholder="رقم الصنف" required>
+        <input type="number" id="buy" placeholder="سعر الشراء" required>
+        <input type="number" id="sell" placeholder="سعر البيع" required>
 
-        <label>رقم الصنف:</label><br>
-        <input type="text"><br><br>
-
-        <label>سعر الشراء:</label><br>
-        <input type="number" step="0.01"><br><br>
-
-        <label>سعر البيع:</label><br>
-        <input type="number" step="0.01"><br><br>
-
-        <button type="submit">إضافة</button>
+        <button type="submit">➕ إضافة صنف</button>
     </form>
 
-    <hr>
-
-    <h2>قائمة الأصناف</h2>
-    <table border="1" width="100%">
-        <tr>
-            <th>رقم الصنف</th>
-            <th>اسم الصنف</th>
-            <th>سعر الشراء</th>
-            <th>سعر البيع</th>
-            <th>العمليات</th>
-        </tr>
-
-        <!-- مثال صف -->
-        <tr>
-            <td>0001</td>
-            <td>مثال</td>
-            <td>10</td>
-            <td>15</td>
-            <td><button>تعديل</button> <button>حذف</button></td>
-        </tr>
+    <table>
+        <thead>
+            <tr>
+                <th>الرقم</th>
+                <th>اسم الصنف</th>
+                <th>سعر الشراء</th>
+                <th>سعر البيع</th>
+                <th>الحذف</th>
+            </tr>
+        </thead>
+        <tbody id="productTable">
+            <!-- البيانات ستظهر هنا -->
+        </tbody>
     </table>
 
 </body>
