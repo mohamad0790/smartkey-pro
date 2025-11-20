@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قارئ الباركود - SmartKey Pro</title>
+
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
+
+    <style>
+        body { font-family: Arial; text-align: center; padding: 20px; direction: rtl; }
+        video { width: 90%; border: 2px solid #333; border-radius: 10px; }
+        input { width: 80%; padding: 10px; margin-top: 15px; font-size: 18px; }
+    </style>
+</head>
+
+<body>
+
+    <h1>📷 ماسح الباركود</h1>
+
+    <video id="preview"></video>
+
+    <h3>الباركود المقروء:</h3>
+    <input id="barcode-result" readonly>
+
+    <script>
+        const codeReader = new ZXing.BrowserBarcodeReader();
+        const video = document.getElementById('preview');
+
+        codeReader.decodeFromVideoDevice(null, 'preview', (result, err) => {
+            if (result) {
+                document.getElementById('barcode-result').value = result.text;
+            }
+        });
+    </script>
+
+</body>
+</html>
