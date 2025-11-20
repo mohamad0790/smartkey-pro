@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>الأصناف - SmartKey Pro</title>
 </head>
-<body>
 
+<body>
     <h1>إدارة الأصناف</h1>
 
     <h2>إضافة صنف جديد</h2>
@@ -18,18 +18,35 @@
         <input type="text"><br><br>
 
         <label>سعر الشراء:</label><br>
-        <input type="number"><br><br>
+        <input type="number" step="0.01"><br><br>
 
         <label>سعر البيع:</label><br>
-        <input type="number"><br><br>
+        <input type="number" step="0.01"><br><br>
 
         <button type="submit">إضافة</button>
     </form>
 
-    <br><br>
+    <hr>
 
-    <h2>جميع الأصناف</h2>
-    <p>سيتم عرض الأصناف هنا لاحقًا...</p>
+    <h2>قائمة الأصناف</h2>
+    <table border="1" width="100%">
+        <tr>
+            <th>رقم الصنف</th>
+            <th>اسم الصنف</th>
+            <th>سعر الشراء</th>
+            <th>سعر البيع</th>
+            <th>العمليات</th>
+        </tr>
+
+        <!-- مثال صف -->
+        <tr>
+            <td>0001</td>
+            <td>مثال</td>
+            <td>10</td>
+            <td>15</td>
+            <td><button>تعديل</button> <button>حذف</button></td>
+        </tr>
+    </table>
 
 </body>
 </html>
