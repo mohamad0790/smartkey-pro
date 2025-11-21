@@ -3,7 +3,7 @@ import { supabase } from "./supabase.js";
 // تحميل الأصناف عند فتح الصفحة
 window.onload = loadProducts;
 
-// إضافة صنف جديد
+// إضافة صنف
 async function addProduct() {
     const name = document.getElementById("name").value.trim();
     const code = document.getElementById("code").value.trim();
@@ -12,7 +12,7 @@ async function addProduct() {
     const quantity = parseInt(document.getElementById("quantity").value.trim()) || 1;
 
     if (!name || !code || isNaN(buy) || isNaN(sell)) {
-        alert("الرجاء تعبئة جميع الحقول بشكل صحيح");
+        alert("❗ الرجاء تعبئة جميع الحقول بشكل صحيح");
         return;
     }
 
@@ -20,16 +20,16 @@ async function addProduct() {
         .from("products")
         .insert([
             {
+                product_code: code,
                 name: name,
-                code: code,
-                buy_price: buy,
-                sell_price: sell,
-                stock: quantity
+                buy: buy,
+                sell: sell,
+                quantity: quantity
             }
         ]);
 
     if (error) {
-        alert("خطأ في الإضافة: " + error.message);
+        alert("❌ خطأ في الإضافة: " + error.message);
         return;
     }
 
@@ -38,7 +38,7 @@ async function addProduct() {
     loadProducts();
 }
 
-// مسح الحقول بعد الإضافة
+// مسح الحقول
 function clearInputs() {
     document.getElementById("name").value = "";
     document.getElementById("code").value = "";
@@ -47,7 +47,7 @@ function clearInputs() {
     document.getElementById("quantity").value = "1";
 }
 
-// تحميل الأصناف من Supabase
+// تحميل الأصناف
 async function loadProducts() {
     const table = document.getElementById("products-table");
     table.innerHTML = "<tr><td colspan='6'>جاري التحميل...</td></tr>";
@@ -58,7 +58,7 @@ async function loadProducts() {
         .order("id", { ascending: false });
 
     if (error) {
-        table.innerHTML = "<tr><td colspan='6'>حدث خطأ في جلب البيانات</td></tr>";
+        table.innerHTML = "<tr><td colspan='6'>❌ خطأ في جلب البيانات</td></tr>";
         return;
     }
 
@@ -68,13 +68,13 @@ async function loadProducts() {
         const row = `
             <tr>
                 <td>${p.name}</td>
-                <td>${p.code}</td>
-                <td>${p.buy_price}</td>
-                <td>${p.sell_price}</td>
-                <td>${p.stock}</td>
+                <td>${p.product_code}</td>
+                <td>${p.buy}</td>
+                <td>${p.sell}</td>
+                <td>${p.quantity}</td>
                 <td>
-                    <button onclick="deleteProduct(${p.id})" 
-                    style="background:#d9534f;color:white;border:none;padding:5px 10px;border-radius:5px;">
+                    <button onclick="deleteProduct(${p.id})"
+                        style="background:#d9534f;color:white;border:none;padding:5px 10px;border-radius:5px;">
                         حذف
                     </button>
                 </td>
@@ -86,7 +86,7 @@ async function loadProducts() {
 
 // حذف صنف
 async function deleteProduct(id) {
-    if (!confirm("هل تريد حذف الصنف؟")) return;
+    if (!confirm("❗ هل تريد حذف الصنف؟")) return;
 
     const { error } = await supabase
         .from("products")
@@ -94,13 +94,12 @@ async function deleteProduct(id) {
         .eq("id", id);
 
     if (error) {
-        alert("فشل الحذف: " + error.message);
+        alert("❌ فشل الحذف: " + error.message);
         return;
     }
 
     loadProducts();
 }
 
-// ربط الدوال بالنافذة
 window.addProduct = addProduct;
 window.deleteProduct = deleteProduct;
