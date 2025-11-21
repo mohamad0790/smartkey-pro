@@ -7,12 +7,12 @@ window.onload = loadProducts;
 async function addProduct() {
     const name = document.getElementById("name").value.trim();
     const product_code = document.getElementById("code").value.trim();
-    const buy = document.getElementById("buy").value.trim();
-    const sell = document.getElementById("sell").value.trim();
+    const buy = parseFloat(document.getElementById("buy").value.trim());
+    const sell = parseFloat(document.getElementById("sell").value.trim());
     const quantity = parseInt(document.getElementById("quantity").value.trim()) || 1;
 
-    if (!name || !product_code || !buy || !sell) {
-        alert("الرجاء تعبئة جميع الحقول");
+    if (!name || !product_code || isNaN(buy) || isNaN(sell)) {
+        alert("الرجاء تعبئة جميع الحقول بشكل صحيح");
         return;
     }
 
