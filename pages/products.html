@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ar">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -48,7 +49,8 @@
             font-size: 17px;
         }
 
-        th, td {
+        th,
+        td {
             border: 1px solid #ccc;
             padding: 10px;
         }
@@ -75,8 +77,6 @@
     <input id="code" placeholder="كود الصنف" />
     <input id="buy" placeholder="سعر الشراء" />
     <input id="sell" placeholder="سعر البيع" />
-
-    <!-- الحقل الجديد للكمية -->
     <input id="quantity" placeholder="الكمية" value="1" />
 
     <button onclick="addProduct()">إضافة الصنف ➕</button>
@@ -88,15 +88,17 @@
                 <th>الكود</th>
                 <th>الشراء</th>
                 <th>البيع</th>
+                <th>الكمية</th>
                 <th>حذف</th>
             </tr>
         </thead>
         <tbody id="products-table"></tbody>
     </table>
 
-    <!-- ملفات الجافاسكربت -->
+    <!-- استيراد الجافاسكربت -->
     <script type="module" src="./supabase.js"></script>
     <script type="module" src="./products.js"></script>
 
 </body>
+
 </html>
