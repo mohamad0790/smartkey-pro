@@ -22,14 +22,14 @@ async function addProduct() {
             {
                 product_code: code,
                 name: name,
-                buy: buy,            // ✔ صح
-                sell: sell,          // ✔ صح
-                quantity: quantity   // ✔ صح
+                buy: buy,       
+                sell: sell,     
+                quantity: quantity
             }
         ]);
 
     if (error) {
-        alert("خطأ في الإضافة: " + error.message);
+        alert("❌ خطأ في الإضافة: " + error.message);
         return;
     }
 
@@ -38,7 +38,7 @@ async function addProduct() {
     loadProducts();
 }
 
-// مسح الحقول بعد الإضافة
+// مسح الحقول
 function clearInputs() {
     document.getElementById("name").value = "";
     document.getElementById("code").value = "";
@@ -47,7 +47,7 @@ function clearInputs() {
     document.getElementById("quantity").value = "1";
 }
 
-// تحميل الأصناف من Supabase
+// تحميل البيانات
 async function loadProducts() {
     const table = document.getElementById("products-table");
     table.innerHTML = "<tr><td colspan='6'>جاري التحميل...</td></tr>";
@@ -74,7 +74,7 @@ async function loadProducts() {
                 <td>${p.quantity}</td>
                 <td>
                     <button onclick="deleteProduct(${p.id})" 
-                    style="background:#d9534f;color:white;border:none;padding:5px 10px;border-radius:5px;">
+                        style="background:#d9534f;color:white;border:none;padding:5px 10px;border-radius:5px;">
                         حذف
                     </button>
                 </td>
