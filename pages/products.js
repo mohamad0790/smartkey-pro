@@ -100,3 +100,7 @@ async function deleteProduct(id) {
 
     loadProducts();
 }
+
+// ربط الدوال بالنافذة
+window.addProduct = addProduct;
+window.deleteProduct = deleteProduct;
