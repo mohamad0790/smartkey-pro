@@ -48,6 +48,12 @@
         h1 {
             margin-bottom: 25px;
         }
+
+        #msg {
+            margin-top: 12px;
+            font-size: 16px;
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -56,16 +62,18 @@
     <div class="box">
         <h1>🔐 تسجيل الدخول</h1>
 
-        <input id="user" placeholder="معرّف المستخدم (مثل admin)" />
+        <!-- لازم يكون id="userId" -->
+        <input id="userId" placeholder="معرّف المستخدم (مثل admin)" />
+
         <input id="pin" placeholder="الرمز السري (مثل 1234)" type="password" />
 
         <button onclick="login()">تسجيل الدخول</button>
+
+        <!-- مكان ظهور الرسائل -->
+        <p id="msg"></p>
     </div>
 
-    <!-- استدعاء ملف supabase -->
-    <script type="module" src="./supabase.js"></script>
-
-    <!-- استدعاء ملف تسجيل الدخول -->
+    <!-- استدعاء ملف تسجيل الدخول فقط -->
     <script type="module" src="./login.js"></script>
 
 </body>
