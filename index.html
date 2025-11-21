@@ -1,12 +1,680 @@
 <!DOCTYPE html>
-<html lang="ar">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SmartKey POS</title>
-  </head>
+<html lang="ar" dir="rtl">
 
-  <body dir="rtl">
-    <div id="root"></div>
-  </body>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SmartKey — نظام الفواتير والمخزون</title>
+
+    <!-- ================== GLOBAL STYLE (AR + EN) ================== -->
+    <style>
+        body {
+            margin: 0;
+            background: #f5f5f5;
+            font-family: "Tahoma", "Arial", sans-serif;
+        }
+
+        .app {
+            min-height: 100vh;
+            padding-bottom: 50px;
+        }
+
+        .app.dark {
+            background: #1f1f1f;
+            color: #fff;
+        }
+
+        /* Header */
+        header {
+            background: #0066c0;
+            color: white;
+            padding: 18px;
+            text-align: center;
+            font-size: 22px;
+        }
+
+        header button {
+            float: left;
+            margin-top: -5px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: none;
+            background: #004f91;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: #ddd;
+            overflow-x: auto;
+        }
+
+        .tabs button {
+            flex: 1;
+            padding: 14px;
+            font-size: 17px;
+            border: none;
+            cursor: pointer;
+            background: #bfbfbf;
+        }
+
+        .tabs button.active {
+            background: #0078ff;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Panel */
+        .panel {
+            background: white;
+            padding: 14px;
+            margin: 12px;
+            border-radius: 10px;
+        }
+
+        /* Input */
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            margin: 6px 0;
+            border-radius: 6px;
+            border: 1px solid #aaa;
+            font-size: 16px;
+        }
+
+        /* Buttons */
+        button {
+            padding: 12px 16px;
+            border-radius: 6px;
+            background: #0084ff;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:disabled {
+            background: #999;
+        }
+
+        .btn-danger {
+            background: #d9534f;
+        }
+
+        .btn-green {
+            background: #28a745;
+        }
+
+        /* Grid Products */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+            padding: 10px;
+        }
+
+        .product {
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .product img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        /* Invoice Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
+        /* Barcode Cards */
+        .barcode-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .barcode-card {
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 14px;
+            margin-top: 30px;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" class="app">
+<!-- Login Screen -->
+        <div id="login-screen" class="panel" style="max-width: 400px; margin: 30px auto;">
+            <h2>🔐 تسجيل الدخول | Login</h2>
+
+            <input id="login-id" placeholder="معرّف المستخدم / User ID (admin, seller1)">
+            <input id="login-pin" type="password" placeholder="PIN (1234)" inputmode="numeric">
+
+            <button id="login-btn" class="btn-green">دخول | Login</button>
+
+            <hr>
+
+            <h3>🔗 رابط دعوة للبائع | Seller Invite Link</h3>
+            <input id="invite-link" readonly>
+            <button onclick="copyInvite()">نسخ الرابط | Copy</button>
+        </div>
+
+        <!-- Main App Content -->
+        <div id="main-app" style="display: none;">
+
+            <header>
+                نظام SmartKey — SmartKey System
+                <button onclick="toggleDark()">🌓</button>
+                <button onclick="logout()">تسجيل الخروج | Logout</button>
+            </header>
+
+            <nav class="tabs">
+                <button class="tab-btn" data-tab="products">🧰 المنتجات | Products</button>
+                <button class="tab-btn" data-tab="invoice">🧾 الفاتورة | Invoice</button>
+                <button class="tab-btn" data-tab="customers">👥 العملاء | Customers</button>
+                <button class="tab-btn" data-tab="debts">💸 المديونية | Debts</button>
+                <button class="tab-btn" data-tab="sellers">👨‍🔧 البائعون | Sellers</button>
+                <button class="tab-btn" data-tab="barcodes">📇 الباركودات | Barcodes</button>
+            </nav>
+
+            <main id="tabs-container"></main>
+
+            <footer class="footer">
+                SmartKey — حفظ البيانات عبر Supabase ✔
+            </footer>
+
+        </div>
+    </div>
+
+    <!-- ================== START JAVASCRIPT ================== -->
+    <script>
+        // ==========================
+        //  Supabase Configuration
+        // ==========================
+        const SUPA_URL = "https://qvnxhqqewluqcdddltiw.supabase.co";
+        const SUPA_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2bnhocXFld2x1cWNkZGRsdGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxMzMwMTMsImV4cCI6MjA3ODcwOTAxM30.5aw42Tx5Dj3ws4xHpErGYAulxN0OclPa3prDx_e_yR0";
+
+        const supabase = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+
+        // ==========================
+        //  App State
+        // ==========================
+        let currentUser = null;
+        let currentTab = "products";
+        let darkMode = false;
+
+        // Elements
+        const loginScreen = document.getElementById("login-screen");
+        const mainApp = document.getElementById("main-app");
+        const tabsContainer = document.getElementById("tabs-container");
+
+        // ==========================
+        //  Utility Functions
+        // ==========================
+        function toggleDark() {
+            darkMode = !darkMode;
+            document.getElementById("app").classList.toggle("dark");
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem("sk_user");
+            mainApp.style.display = "none";
+            loginScreen.style.display = "block";
+        }
+
+        function copyInvite() {
+            const link = document.getElementById("invite-link").value;
+            navigator.clipboard.writeText(link);
+            alert("تم نسخ الرابط ✔");
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll(".tab-btn").forEach(btn => {
+                btn.classList.toggle("active", btn.dataset.tab === tab);
+            });
+            loadTabContent();
+        }
+
+        document.querySelectorAll(".tab-btn").forEach(btn => {
+            btn.onclick = () => switchTab(btn.dataset.tab);
+        });
+
+        // ==========================
+        //  Login System
+        // ==========================
+        document.getElementById("login-btn").onclick = async () => {
+            const id = document.getElementById("login-id").value.trim().toLowerCase();
+            const pin = document.getElementById("login-pin").value.trim();
+
+            if (!id || !pin) return alert("أدخل البيانات");
+
+            const { data, error } = await supabase
+                .from("users")
+                .select("*")
+                .eq("id", id)
+                .eq("pin", pin)
+                .single();
+
+            if (error || !data) return alert("بيانات الدخول غير صحيحة ❌");
+
+            // Save session
+            currentUser = data;
+            localStorage.setItem("sk_user", JSON.stringify(data));
+
+            // Show main
+            loginScreen.style.display = "none";
+            mainApp.style.display = "block";
+
+            // Seller invite link
+            document.getElementById("invite-link").value =
+                window.location.href + "?seller=" + id;
+
+            switchTab("products");
+        };
+
+        // Restore session
+        const saved = localStorage.getItem("sk_user");
+        if (saved) {
+            currentUser = JSON.parse(saved);
+            loginScreen.style.display = "none";
+            mainApp.style.display = "block";
+            switchTab("products");
+        }
+// ==============================
+        //      LOAD TAB CONTENT
+        // ==============================
+        async function loadTabContent() {
+            if (currentTab === "products") return loadProductsTab();
+            if (currentTab === "invoice") return loadInvoiceTab();
+            if (currentTab === "customers") return loadCustomersTab();
+            if (currentTab === "debts") return loadDebtsTab();
+            if (currentTab === "sellers") return loadSellersTab();
+            if (currentTab === "barcodes") return loadBarcodesTab();
+        }
+
+        // ==============================
+        //           PRODUCTS TAB
+        // ==============================
+        async function loadProductsTab() {
+            tabsContainer.innerHTML = `
+                <div class="panel">
+                    <h2>🧰 المنتجات | Products</h2>
+
+                    <input id="p-code" placeholder="الكود | Code">
+                    <input id="p-name" placeholder="اسم المنتج | Name">
+                    <input id="p-buy" placeholder="سعر الشراء | Buy Price" type="number">
+                    <input id="p-sell" placeholder="سعر البيع | Sell Price" type="number">
+                    <input id="p-qty" placeholder="الكمية | Quantity" type="number">
+
+                    <label class="btn-green" style="display:block;margin-top:10px;padding:10px;text-align:center;">
+                        📷 صورة المنتج | Product Image
+                        <input id="p-image" type="file" accept="image/*" style="display:none;">
+                    </label>
+
+                    <button class="btn-green" onclick="addNewProduct()">💾 إضافة المنتج | Save Product</button>
+                </div>
+
+                <div id="products-list" class="grid"></div>
+            `;
+
+            document.getElementById("p-image").onchange = previewImage;
+
+            loadProductsList();
+        }
+
+        async function previewImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => window.tempImage = reader.result;
+            reader.readAsDataURL(file);
+        }
+
+        async function addNewProduct() {
+            const code = document.getElementById("p-code").value.trim();
+            const name = document.getElementById("p-name").value.trim();
+            const buy = Number(document.getElementById("p-buy").value);
+            const sell = Number(document.getElementById("p-sell").value);
+            const qty = Number(document.getElementById("p-qty").value);
+            const img = window.tempImage || null;
+
+            if (!code || !name) return alert("أدخل الكود والاسم ✔");
+
+            await supabase.from("products").insert([
+                { code, name, buy_price: buy, sell_price: sell, stock: qty, image: img }
+            ]);
+
+            alert("✔ تم إضافة المنتج");
+            loadProductsList();
+        }
+
+        async function loadProductsList() {
+            const { data } = await supabase.from("products").select("*").order("id", { ascending: false });
+
+            const container = document.getElementById("products-list");
+            container.innerHTML = "";
+
+            data.forEach(p => {
+                container.innerHTML += `
+                    <div class="product">
+                        <img src="${p.image || 'https://via.placeholder.com/120'}">
+                        <h4>${p.name}</h4>
+                        <p>Code: ${p.code}</p>
+                        <p>Buy: ${p.buy_price} | Sell: ${p.sell_price}</p>
+                        <p>Qty: ${p.stock}</p>
+
+                        <button onclick="addToInvoice(${p.id})">➕</button>
+                        <button class="btn-danger" onclick="deleteProduct(${p.id})">🗑️ حذف</button>
+                    </div>
+                `;
+            });
+        }
+
+        async function deleteProduct(id) {
+            if (!confirm("هل تريد حذف المنتج؟")) return;
+
+            await supabase.from("products").delete().eq("id", id);
+            loadProductsList();
+        }
+
+        // ==============================
+        //           INVOICE TAB
+        // ==============================
+        let invoice = [];
+
+        async function loadInvoiceTab() {
+            tabsContainer.innerHTML = `
+                <div class="panel">
+                    <h2>🧾 الفاتورة | Invoice</h2>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>الصنف | Item</th>
+                                <th>السعر | Price</th>
+                                <th>الكمية | Qty</th>
+                                <th>الإجمالي | Total</th>
+                                <th>تحكم | Control</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoice-body"></tbody>
+                    </table>
+
+                    <h3 id="invoice-total"></h3>
+
+                    <button class="btn-green" onclick="saveInvoice()">💾 حفظ الفاتورة | Save</button>
+                    <button class="btn-danger" onclick="clearInvoice()">مسح | Clear</button>
+                </div>
+            `;
+
+            renderInvoice();
+        }
+
+        async function addToInvoice(id) {
+            const { data } = await supabase.from("products").select("*").eq("id", id).single();
+            const exist = invoice.find(i => i.id === id);
+
+            if (exist) {
+                if (exist.qty + 1 > data.stock) return alert("لا توجد كمية كافية ✔");
+                exist.qty++;
+            } else {
+                invoice.push({
+                    id: data.id,
+                    name: data.name,
+                    price: data.sell_price,
+                    qty: 1
+                });
+            }
+
+            renderInvoice();
+        }
+
+        function renderInvoice() {
+            const body = document.getElementById("invoice-body");
+            const totalText = document.getElementById("invoice-total");
+
+            body.innerHTML = "";
+            let total = 0;
+
+            invoice.forEach(item => {
+                total += item.qty * item.price;
+
+                body.innerHTML += `
+                    <tr>
+                        <td>${item.name}</td>
+                        <td>${item.price}</td>
+                        <td>${item.qty}</td>
+                        <td>${item.qty * item.price}</td>
+                        <td>
+                            <button onclick="changeQty(${item.id}, 1)">+</button>
+                            <button onclick="changeQty(${item.id}, -1)">-</button>
+                            <button class="btn-danger" onclick="removeItem(${item.id})">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            totalText.textContent = "الإجمالي | Total: " + total + " ريال";
+        }
+
+        function changeQty(id, d) {
+            const item = invoice.find(i => i.id === id);
+            if (!item) return;
+            item.qty += d;
+            if (item.qty <= 0) invoice = invoice.filter(i => i.id !== id);
+            renderInvoice();
+        }
+
+        function removeItem(id) {
+            invoice = invoice.filter(i => i.id !== id);
+            renderInvoice();
+        }
+
+        function clearInvoice() {
+            invoice = [];
+            renderInvoice();
+        }
+
+        async function saveInvoice() {
+            if (invoice.length === 0) return alert("لا توجد أصناف ✔");
+
+            let total = invoice.reduce((t, i) => t + i.qty * i.price, 0);
+
+            // Save invoice
+            const { data: inv } = await supabase.from("invoices")
+                .insert([{ total, user: currentUser.id }])
+                .select().single();
+
+            // Save items
+            const itemsPayload = invoice.map(i => ({
+                invoice_id: inv.id,
+                product_id: i.id,
+                qty: i.qty,
+                price: i.price
+            }));
+
+            await supabase.from("invoice_items").insert(itemsPayload);
+
+            // Update stock
+            for (let i of invoice) {
+                const { data: p } = await supabase.from("products").select("*").eq("id", i.id).single();
+                await supabase
+                    .from("products")
+                    .update({ stock: p.stock - i.qty })
+                    .eq("id", i.id);
+            }
+
+            alert("✔ تم حفظ الفاتورة");
+            invoice = [];
+            renderInvoice();
+        }
+
+        // ==============================
+        //           CUSTOMERS TAB
+        // ==============================
+        async function loadCustomersTab() {
+            const { data } = await supabase.from("customers").select("*");
+
+            tabsContainer.innerHTML = `
+                <div class="panel">
+                    <h2>👥 العملاء | Customers</h2>
+
+                    <button class="btn-green" onclick="addCustomer()">➕ إضافة عميل | Add</button>
+
+                    <ul>
+                        ${data.map(c => `<li>${c.name}</li>`).join("")}
+                    </ul>
+                </div>
+            `;
+        }
+
+        async function addCustomer() {
+            const name = prompt("اسم العميل:");
+            if (!name) return;
+
+            await supabase.from("customers").insert([{ name }]);
+            loadCustomersTab();
+        }
+
+        // ==============================
+        //            DEBTS TAB
+        // ==============================
+        async function loadDebtsTab() {
+            const { data } = await supabase.from("debts").select("*");
+
+            tabsContainer.innerHTML = `
+                <div class="panel">
+                    <h2>💸 المديونية | Debts</h2>
+
+                    <button class="btn-green" onclick="addDebt()">➕ إضافة | Add</button>
+
+                    <table>
+                        <thead>
+                            <tr><th>عميل | Customer</th><th>المبلغ | Amount</th></tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(d => `
+                                <tr><td>${d.name}</td><td>${d.amount}</td></tr>
+                            `).join("")}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        async function addDebt() {
+            const name = prompt("اسم العميل:");
+            const amount = Number(prompt("المبلغ:"));
+            if (!name || isNaN(amount)) return;
+
+            await supabase.from("debts").insert([{ name, amount }]);
+            loadDebtsTab();
+        }
+
+        // ==============================
+        //            SELLERS TAB
+        // ==============================
+        async function loadSellersTab() {
+            const { data } = await supabase.from("users").select("*");
+
+            tabsContainer.innerHTML = `
+                <div class="panel">
+                    <h2>👨‍🔧 البائعون | Sellers</h2>
+
+                    <button class="btn-green" onclick="addSeller()">➕ إضافة بائع | Add Seller</button>
+
+                    <table>
+                        <thead>
+                            <tr><th>ID</th><th>Name</th><th>Role</th></tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(s => `
+                                <tr><td>${s.id}</td><td>${s.name}</td><td>${s.role}</td></tr>
+                            `).join("")}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        async function addSeller() {
+            const id = prompt("معرّف المستخدم:");
+            const name = prompt("الاسم:");
+            const pin = prompt("PIN (أربع أرقام):");
+
+            if (!id || !name || !/^[0-9]{4}$/.test(pin))
+                return alert("بيانات غير صحيحة");
+
+            await supabase.from("users").insert([
+                { id, name, pin, role: "seller" }
+            ]);
+
+            loadSellersTab();
+        }
+
+        // ==============================
+        //            BARCODES TAB
+        // ==============================
+        async function loadBarcodesTab() {
+            const { data } = await supabase.from("products").select("*");
+
+            tabsContainer.innerHTML = `
+                <div class="panel">
+                    <h2>📇 الباركودات | Barcodes</h2>
+
+                    <button onclick="window.print()">🖨️ طباعة | Print</button>
+
+                    <div class="barcode-grid">
+                        ${data.map(p => `
+                            <div class="barcode-card">
+                                <strong>${p.name}</strong>
+                                <p>${p.code}</p>
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${p.code}">
+                            </div>
+                        `).join("")}
+                    </div>
+                </div>
+            `;
+        }
+// ==========================
+        //   END — Load first tab
+        // ==========================
+        loadTabContent();
+
+    </script>
+
+    <!-- Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+</body>
 </html>
