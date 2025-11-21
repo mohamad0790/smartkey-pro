@@ -9,9 +9,7 @@ async function addProduct() {
     const product_code = document.getElementById("code").value.trim();
     const buy = document.getElementById("buy").value.trim();
     const sell = document.getElementById("sell").value.trim();
-
-    // الكمية ثابتة الآن = 1
-    const quantity = 1;
+    const quantity = parseInt(document.getElementById("quantity").value.trim()) || 1;
 
     if (!name || !product_code || !buy || !sell) {
         alert("الرجاء تعبئة جميع الحقول");
@@ -20,13 +18,7 @@ async function addProduct() {
 
     const { error } = await supabase
         .from("products")
-        .insert([{ 
-            name, 
-            product_code, 
-            buy, 
-            sell,
-            quantity
-        }]);
+        .insert([{ name, product_code, buy, sell, quantity }]);
 
     if (error) {
         alert("خطأ في الإضافة: " + error.message);
@@ -44,6 +36,7 @@ function clearInputs() {
     document.getElementById("code").value = "";
     document.getElementById("buy").value = "";
     document.getElementById("sell").value = "";
+    document.getElementById("quantity").value = "1";
 }
 
 // تحميل الأصناف من Supabase
