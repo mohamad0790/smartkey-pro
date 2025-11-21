@@ -6,26 +6,34 @@ window.onload = loadProducts;
 // إضافة صنف جديد
 async function addProduct() {
     const name = document.getElementById("name").value.trim();
-    const product_code = document.getElementById("code").value.trim();
+    const code = document.getElementById("code").value.trim();
     const buy = parseFloat(document.getElementById("buy").value.trim());
     const sell = parseFloat(document.getElementById("sell").value.trim());
     const quantity = parseInt(document.getElementById("quantity").value.trim()) || 1;
 
-    if (!name || !product_code || isNaN(buy) || isNaN(sell)) {
+    if (!name || !code || isNaN(buy) || isNaN(sell)) {
         alert("الرجاء تعبئة جميع الحقول بشكل صحيح");
         return;
     }
 
     const { error } = await supabase
         .from("products")
-        .insert([{ name, product_code, buy, sell, quantity }]);
+        .insert([
+            {
+                name: name,
+                code: code,
+                buy_price: buy,
+                sell_price: sell,
+                stock: quantity
+            }
+        ]);
 
     if (error) {
         alert("خطأ في الإضافة: " + error.message);
         return;
     }
 
-    alert("تم إضافة الصنف بنجاح");
+    alert("✔ تم إضافة الصنف بنجاح");
     clearInputs();
     loadProducts();
 }
@@ -42,7 +50,7 @@ function clearInputs() {
 // تحميل الأصناف من Supabase
 async function loadProducts() {
     const table = document.getElementById("products-table");
-    table.innerHTML = "<tr><td colspan='5'>جاري التحميل...</td></tr>";
+    table.innerHTML = "<tr><td colspan='6'>جاري التحميل...</td></tr>";
 
     const { data, error } = await supabase
         .from("products")
@@ -50,7 +58,7 @@ async function loadProducts() {
         .order("id", { ascending: false });
 
     if (error) {
-        table.innerHTML = "<tr><td colspan='5'>حدث خطأ في جلب البيانات</td></tr>";
+        table.innerHTML = "<tr><td colspan='6'>حدث خطأ في جلب البيانات</td></tr>";
         return;
     }
 
@@ -60,9 +68,10 @@ async function loadProducts() {
         const row = `
             <tr>
                 <td>${p.name}</td>
-                <td>${p.product_code}</td>
-                <td>${p.buy}</td>
-                <td>${p.sell}</td>
+                <td>${p.code}</td>
+                <td>${p.buy_price}</td>
+                <td>${p.sell_price}</td>
+                <td>${p.stock}</td>
                 <td>
                     <button onclick="deleteProduct(${p.id})" 
                     style="background:#d9534f;color:white;border:none;padding:5px 10px;border-radius:5px;">
