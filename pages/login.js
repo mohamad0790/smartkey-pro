@@ -1,29 +1,42 @@
 import { supabase } from "./supabase.js";
 
 async function login() {
-    const userId = document.getElementById("user").value.trim();
+    const user = document.getElementById("user").value.trim();
     const pin = document.getElementById("pin").value.trim();
+    const msg = document.getElementById("msg");
 
-    if (!userId || !pin) {
-        alert("⚠️ الرجاء إدخال البيانات كاملة");
+    msg.textContent = "";
+
+    if (!user || !pin) {
+        msg.textContent = "❗ الرجاء إدخال جميع البيانات";
+        msg.style.color = "red";
         return;
     }
 
+    // التحقق من المستخدم
     const { data, error } = await supabase
         .from("users")
         .select("*")
-        .eq("id", userId)
+        .eq("id", user)
         .eq("pin", pin)
         .single();
 
     if (error || !data) {
-        alert("❌ بيانات غير صحيحة");
+        msg.textContent = "❌ بيانات غير صحيحة!";
+        msg.style.color = "red";
         return;
     }
 
-    alert("✅ تم تسجيل الدخول بنجاح");
+    // حفظ الجلسة داخل المتصفح
+    localStorage.setItem("loggedUser", JSON.stringify(data));
 
-    window.location.href = "products.html";
+    msg.textContent = "✔️ تم تسجيل الدخول بنجاح…";
+    msg.style.color = "green";
+
+    // الانتقال لصفحة المنتجات
+    setTimeout(() => {
+        window.location.href = "./products.html";
+    }, 800);
 }
 
 window.login = login;
