@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سند قبض | SmartKey Pro</title>
+    <style>
+        body { font-family: Tahoma, Arial, sans-serif; background-color: #f4f7f6; }
+        .container { max-width: 600px; margin: 20px auto; padding: 30px; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #34495e; border-bottom: 2px solid #27ae60; padding-bottom: 10px; margin-bottom: 30px; }
+        input[type="text"], input[type="number"], select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
+        .client-search-area { display: flex; gap: 10px; margin-bottom: 20px; }
+        .client-search-area input { flex-grow: 1; }
+        .info-box { background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #27ae60; }
+        #client-name-display { font-weight: bold; font-size: 1.1em; color: #2c3e50; }
+        #current-balance-display { font-size: 1.4em; font-weight: bold; color: #c0392b; margin-top: 10px; }
+        button { padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background-color 0.3s; }
+        .btn-green { background-color: #27ae60; color: white; width: 100%; margin-top: 20px; }
+        .btn-green:hover { background-color: #2ecc71; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💵 سند قبض نقدي</h1>
+        
+        <div class="client-search-area">
+            <input type="text" id="client-search" placeholder="ابحث باسم العميل أو رقم الهاتف">
+            <button onclick="searchClient()">بحث</button>
+        </div>
+
+        <div class="info-box">
+            <div id="client-name-display">العميل المحدد: لم يتم الاختيار</div>
+            <div id="current-balance-display">الرصيد الحالي: 0.00</div>
+            <input type="hidden" id="client-id">
+        </div>
+
+        <label for="receipt-amount">مبلغ القبض:</label>
+        <input type="number" id="receipt-amount" placeholder="أدخل المبلغ المستلم">
+
+        <label for="payment-method">طريقة القبض:</label>
+        <select id="payment-method">
+            <option value="cash">نقدي (الصندوق)</option>
+            <option value="bank">تحويل بنكي (البنك)</option>
+        </select>
+
+        <label for="receipt-description">ملاحظات (اختياري):</label>
+        <input type="text" id="receipt-description" placeholder="وصف الحركة">
+
+        <button class="btn-green" onclick="saveReceiptVoucher()">💾 حفظ سند القبض والترحيل</button>
+        
+        <p style="text-align: center; margin-top: 30px;">
+            <a href="../index.html">العودة إلى القائمة الرئيسية</a>
+        </p>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script> 
+    <script src="receipt_voucher.js"></script>
+</body>
+</html>
