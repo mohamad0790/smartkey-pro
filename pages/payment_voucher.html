@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سند صرف | SmartKey Pro</title>
+    <style>
+        body { font-family: Tahoma, Arial, sans-serif; background-color: #f4f7f6; }
+        .container { max-width: 600px; margin: 20px auto; padding: 30px; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #34495e; border-bottom: 2px solid #e74c3c; padding-bottom: 10px; margin-bottom: 30px; }
+        input[type="text"], input[type="number"], select { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 16px; }
+        label { display: block; margin-top: 15px; font-weight: bold; color: #555; }
+        .info-box { background: #fbecec; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #e74c3c; }
+        button { padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background-color 0.3s; }
+        .btn-red { background-color: #e74c3c; color: white; width: 100%; margin-top: 20px; }
+        .btn-red:hover { background-color: #c0392b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💸 سند صرف نقدي/مصروفات</h1>
+        
+        <div class="info-box">
+            <p>سيتم صرف المبلغ من الصندوق أو البنك وتوجيهه إلى حساب المصروفات المحدد.</p>
+        </div>
+
+        <label for="expense-account">حساب المصروفات (المدين):</label>
+        <select id="expense-account">
+            <option value="">-- يرجى تحميل حسابات المصروفات --</option>
+        </select>
+
+        <label for="payment-amount">مبلغ الصرف:</label>
+        <input type="number" id="payment-amount" placeholder="أدخل المبلغ المصروف">
+
+        <label for="payment-method">طريقة الصرف (الدائن):</label>
+        <select id="payment-method">
+            <option value="cash">نقدي (الصندوق)</option>
+            <option value="bank">تحويل بنكي (البنك)</option>
+        </select>
+
+        <label for="voucher-description">ملاحظات/وصف العملية:</label>
+        <input type="text" id="voucher-description" placeholder="إيجار شهر، فاتورة كهرباء، إلخ">
+
+        <button class="btn-red" onclick="savePaymentVoucher()">💾 حفظ سند الصرف والترحيل</button>
+        
+        <p style="text-align: center; margin-top: 30px;">
+            <a href="../index.html">العودة إلى القائمة الرئيسية</a>
+        </p>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script> 
+    <script src="payment_voucher.js"></script>
+</body>
+</html>
