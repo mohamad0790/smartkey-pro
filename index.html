@@ -22,6 +22,14 @@
             transition: background-color 0.3s;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
+        /* لتنسيق زر سند القبض بلون أخضر (لتمييزه) */
+        .receipt-voucher-link {
+            background-color: #27ae60 !important; /* أخضر */
+        }
+        .receipt-voucher-link:hover {
+            background-color: #2ecc71 !important;
+        }
+        
         .menu-item a:hover {
             background-color: #2980b9;
         }
@@ -49,6 +57,9 @@
         </div>
         <div class="menu-item">
             <a href="pages/customer_ledger.html">🏦 دفتر الأستاذ للعملاء (الذمم المدينة)</a>
+        </div>
+        <div class="menu-item">
+            <a href="pages/receipt_voucher.html" class="receipt-voucher-link">💵 سند قبض نقدي</a>
         </div>
         
     </div>
