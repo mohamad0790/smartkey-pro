@@ -47,7 +47,7 @@
             <a href="customer_ledger.html">🏦 البحث عن مديونية العميل</a>
         </div>
         
-        <button class="logout-btn" onclick="logout()">تسجيل الخروج</button>
+        <button id="logout-button" class="logout-btn">تسجيل الخروج</button>
         
         <p style="margin-top: 20px; color: #888;">ملاحظة: لا يمكن للبائع الوصول إلى إعدادات الأصناف أو القيود المحاسبية.</p>
     </div>
@@ -56,22 +56,20 @@
     <script type="module" src="supabase.js"></script> 
     
     <script type="module">
-        // يجب استيراد supabase من الملف المرفق
         import { supabase } from './supabase.js';
 
-        // دالة تسجيل الخروج
+        const logoutButton = document.getElementById('logout-button');
+
         async function logout() {
             const { error } = await supabase.auth.signOut();
             if (error) {
                 console.error('Logout error:', error.message);
             } else {
-                // التوجيه إلى صفحة تسجيل الدخول بعد الخروج
                 window.location.href = 'login.html'; 
             }
         }
 
-        // ربط دالة تسجيل الخروج بالزر
-        document.querySelector('.logout-btn').addEventListener('click', logout);
+        logoutButton.addEventListener('click', logout);
     </script>
 </body>
 </html>
