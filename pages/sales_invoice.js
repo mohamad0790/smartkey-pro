@@ -11,23 +11,25 @@ const invoiceItemsBody = document.getElementById('invoice-items-body');
 let allProducts = []; 
 let selectedClient = null; 
 
-// ******* يجب تعديل هذه الأرقام لتتطابق مع الـ IDs الفعلية في جدول chart_of_accounts *******
-// قم بتعبئة جدول دليل الحسابات أولاً واستبدل هذه القيم بأرقام الـ ID التي تحصل عليها.
-const ACCOUNT_ID_CASH = 1;         // ID حساب الصندوق (مثال: 1101001)
-const ACCOUNT_ID_BANK = 2;         // ID حساب البنك (مثال: 1102001)
-const ACCOUNT_ID_AR = 3;           // ID حساب الذمم المدينة (العملاء) (مثال: 1201)
-const ACCOUNT_ID_REVENUE = 4;      // ID حساب إيرادات المبيعات (مثال: 4101001)
+// ******* الأرقام المؤكدة بناءً على جدول Supabase لديك *******
+// (1: الصندوق, 2: البنك, 3: الذمم المدينة, 4: الإيرادات)
+const ACCOUNT_ID_CASH = 1;         // ID حساب الصندوق
+const ACCOUNT_ID_BANK = 2;         // ID حساب البنك
+const ACCOUNT_ID_AR = 3;           // ID حساب الذمم المدينة (العملاء)
+const ACCOUNT_ID_REVENUE = 4;      // ID حساب إيرادات المبيعات
 // *****************************************************************************************
 
 
 // 1. جلب المنتجات عند تحميل الصفحة
 async function fetchProducts() {
+    // نفترض أن جدول المنتجات (products) يحتوي على حقول id, name, sell
     const { data, error } = await supabase
         .from('products')
         .select('id, name, sell'); 
 
     if (error) {
         console.error('Error fetching products:', error.message);
+        // يمكنك هنا إضافة سطر لإنشاء منتج تجريبي إذا كان الجدول فارغاً
         return;
     }
     allProducts = data;
@@ -51,6 +53,7 @@ window.searchClient = async function() {
         return;
     }
     
+    // افتراض اختيار أول عميل تم العثور عليه
     selectedClient = data[0]; 
     clientIdInput.value = selectedClient.id;
     clientNameDisplay.textContent = `اسم العميل: ${selectedClient.name}`;
@@ -61,7 +64,7 @@ window.searchClient = async function() {
 
 // 3. جلب الرصيد السابق للعميل من جدول customer_transactions
 async function fetchPreviousBalance(customerId) {
-    // نستخدم الدالة التي تم إنشاؤها في Supabase
+    // نستخدم دالة RPC التي تتوقع client_id_param
     const { data: balanceData, error } = await supabase.rpc('calculate_client_balance', { client_id_param: customerId });
     
     if (error) {
@@ -139,165 +142,4 @@ window.calculateTotal = function() {
     document.getElementById('remaining-due').textContent = remainingDue.toFixed(2);
 }
 
-// 8. دالة الحفظ الرئيسية والترحيل المحاسبي
-window.saveInvoice = async function() {
-    const entryDate = new Date().toISOString().slice(0, 10);
-    const totalDue = parseFloat(document.getElementById('final-total').textContent);
-    const paymentAmount = parseFloat(document.getElementById('payment-amount').value);
-    const paymentMethod = document.getElementById('payment-method').value;
-    const remainingDue = parseFloat(document.getElementById('remaining-due').textContent);
-    const clientId = clientIdInput.value;
-
-    if (!clientId) {
-        alert('الرجاء اختيار العميل أولاً.');
-        return;
-    }
-    
-    if (totalDue <= 0) {
-        alert('إجمالي الفاتورة يجب أن يكون أكبر من صفر.');
-        return;
-    }
-    
-    if (paymentAmount > totalDue) {
-        alert('المبلغ المدفوع يتجاوز الإجمالي المستحق.');
-        return;
-    }
-
-    try {
-        // -----------------------------------------------------------
-        // 1. حفظ رأس الفاتورة في جدول 'sales'
-        // -----------------------------------------------------------
-        const { data: saleData, error: saleError } = await supabase
-            .from('sales')
-            .insert([{ 
-                customer_id: clientId, 
-                sale_date: entryDate, 
-                total_amount: totalDue,
-                discount: parseFloat(document.getElementById('discount').value) || 0,
-                payment_method: paymentMethod
-            }])
-            .select('id')
-            .single();
-
-        if (saleError) throw new Error('فشل في حفظ رأس الفاتورة.');
-        
-        const newSaleId = saleData.id;
-        let saleItemsToInsert = [];
-
-        // 1.1 حفظ تفاصيل الأصناف في جدول 'sale_items'
-        invoiceItemsBody.querySelectorAll('tr').forEach(row => {
-            const productSelect = row.querySelector('.product-select');
-            const productId = productSelect ? productSelect.value : null;
-            const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
-            const price = parseFloat(row.querySelector('.price-input').value) || 0;
-
-            if (productId && qty > 0) {
-                saleItemsToInsert.push({
-                    sale_id: newSaleId,
-                    item_id: productId,
-                    quantity: qty,
-                    unit_price: price,
-                    total_price: qty * price
-                });
-            }
-        });
-        
-        const { error: itemsError } = await supabase.from('sale_items').insert(saleItemsToInsert);
-        if (itemsError) throw new Error('فشل في حفظ تفاصيل الأصناف.');
-        
-        // -----------------------------------------------------------
-        // 2. توليد القيد اليومي الآلي (Journal Entry)
-        // -----------------------------------------------------------
-        
-        // 2.1 حفظ رأس القيد (Journal Entry Header)
-        const { data: entryData, error: entryError } = await supabase
-            .from('journal_entries')
-            .insert([{ 
-                entry_date: entryDate, 
-                reference_number: `INV-${newSaleId}`, 
-                description: `قيد فاتورة مبيعات رقم ${newSaleId} للعميل ${clientNameDisplay.textContent.split(':')[1].trim()}` 
-            }])
-            .select('entry_id')
-            .single();
-
-        if (entryError) throw new Error('فشل في حفظ رأس القيد.');
-        const newEntryId = entryData.entry_id;
-        
-        let journalLines = [];
-        
-        // 2.2 السطر الدائن الثابت: إيرادات المبيعات (بإجمالي المبلغ المستحق)
-        journalLines.push({
-            entry_id: newEntryId,
-            account_id: ACCOUNT_ID_REVENUE,
-            debit_amount: 0,
-            credit_amount: totalDue 
-        });
-        
-        // 2.3 السطور المدينة: تقسم بين المدفوعات والذمم المدينة
-        
-        // أ. جزء المدفوعات (إذا كان هناك مبلغ مدفوع)
-        if (paymentAmount > 0) {
-            let debitAccount;
-            if (paymentMethod === 'cash') debitAccount = ACCOUNT_ID_CASH;
-            else if (paymentMethod === 'bank') debitAccount = ACCOUNT_ID_BANK;
-            else debitAccount = ACCOUNT_ID_CASH; // افتراض النقد لأي طريقة دفع غير محددة (مثل الدفعة المقدمة على آجل)
-
-            if (debitAccount) {
-                 journalLines.push({
-                    entry_id: newEntryId,
-                    account_id: debitAccount,
-                    debit_amount: paymentAmount,
-                    credit_amount: 0
-                });
-            }
-        }
-        
-        // ب. جزء الذمم المدينة (إذا كان هناك مبلغ متبقٍ آجل)
-        if (remainingDue > 0) {
-            journalLines.push({
-                entry_id: newEntryId,
-                account_id: ACCOUNT_ID_AR, // حساب إجمالي العملاء
-                debit_amount: remainingDue,
-                credit_amount: 0
-            });
-            
-            // -----------------------------------------------------------
-            // 3. إنشاء حركة مدينة في سجل العميل (Customer Transaction)
-            // -----------------------------------------------------------
-            const { error: transError } = await supabase
-                .from('customer_transactions')
-                .insert([{ 
-                    customer_id: clientId, 
-                    transaction_date: entryDate,
-                    reference_doc_id: newSaleId, 
-                    debit_amount: remainingDue, // المبلغ المتبقي على العميل يعتبر مدين
-                    credit_amount: 0,
-                    description: `فاتورة مبيعات رقم ${newSaleId} آجل`
-                }]);
-            if (transError) throw new Error('فشل في تسجيل الحركة المدينة للعميل.');
-        }
-
-        // 2.4 إدراج جميع سطور القيد المحاسبي
-        const { error: linesError } = await supabase.from('journal_entry_lines').insert(journalLines);
-        if (linesError) throw new Error('فشل في حفظ تفاصيل القيد المحاسبي.');
-
-        // -----------------------------------------------------------
-        // 4. إظهار النجاح وتنظيف الواجهة
-        // -----------------------------------------------------------
-        alert('✅ تم حفظ الفاتورة وتوليد القيد المحاسبي بنجاح!');
-        location.reload(); 
-
-    } catch (e) {
-        console.error('فشل في عملية الحفظ الشاملة:', e.message);
-        alert(`❌ فشل الحفظ: ${e.message}. الرجاء التحقق من: 1) إعداد دالة calculate_client_balance. 2) أرقام الحسابات في الكود!`);
-    }
-}
-
-
-// (بقية الكود تبقى كما هي)
-document.getElementById('add-item').addEventListener('click', addItemRow);
-window.removeRow = function(btn) {
-    btn.closest('tr').remove();
-    calculateTotal();
-}
-fetchProducts();
+// 8. دالة الحفظ الرئيسية والترحيل المحاس
