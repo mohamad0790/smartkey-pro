@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>القائمة الرئيسية | SmartKey Pro</title>
     <style>
-        /* (نفس تنسيق القائمة الذي أرسلته لك سابقًا) */
+        /* (نفس تنسيق القائمة السابق) */
         body { font-family: Arial, sans-serif; background: #f0f4f8; direction: rtl; text-align: center; padding-top: 50px; }
         .menu-container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
         h1 { color: #2c3e50; margin-bottom: 30px; border-bottom: 3px solid #3498db; padding-bottom: 10px; display: inline-block; }
@@ -22,12 +22,18 @@
             transition: background-color 0.3s;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
-        /* لتنسيق زر سند القبض بلون أخضر (لتمييزه) */
         .receipt-voucher-link {
             background-color: #27ae60 !important; /* أخضر */
         }
         .receipt-voucher-link:hover {
             background-color: #2ecc71 !important;
+        }
+        /* تم إضافة تنسيق زر سند الصرف */
+        .payment-voucher-link {
+            background-color: #e74c3c !important; /* أحمر */
+        }
+        .payment-voucher-link:hover {
+            background-color: #c0392b !important;
         }
         
         .menu-item a:hover {
@@ -60,6 +66,9 @@
         </div>
         <div class="menu-item">
             <a href="pages/receipt_voucher.html" class="receipt-voucher-link">💵 سند قبض نقدي</a>
+        </div>
+        <div class="menu-item">
+            <a href="pages/payment_voucher.html" class="payment-voucher-link">💸 سند صرف نقدي/مصروفات</a>
         </div>
         
     </div>
