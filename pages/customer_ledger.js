@@ -1,38 +1,46 @@
 import { supabase } from "../supabase.js";
 
-// إضافة عميل جديد
-async function addCustomer() {
-    const name = document.getElementById("customer_name").value;
-    const phone = document.getElementById("phone").value;
-    const address = document.getElementById("address").value;
-    const notes = document.getElementById("notes").value;
+// تحميل العملاء مع الرصيد
+async function loadCustomers() {
+    let table = document.getElementById("customers_table");
+    table.innerHTML = "<tr><th>العميل</th><th>الجوال</th><th>الرصيد</th></tr>";
 
-    if (!name || !phone) {
-        alert("الاسم ورقم الجوال مطلوبان");
-        return;
-    }
-
-    const { data, error } = await supabase
+    const { data: customers, error } = await supabase
         .from("customers")
-        .insert([
-            {
-                customer_name: name,
-                phone: phone,
-                address: address,
-                notes: notes
-            }
-        ]);
+        .select("*")
+        .order("customer_name");
 
     if (error) {
         console.error(error);
-        alert("خطأ في الإضافة: " + error.message);
-    } else {
-        alert("تم إضافة العميل بنجاح!");
-        document.getElementById("customer_name").value = "";
-        document.getElementById("phone").value = "";
-        document.getElementById("address").value = "";
-        document.getElementById("notes").value = "";
+        return;
+    }
+
+    for (let c of customers) {
+        // جلب آخر رصيد للعميل
+        const { data: lastTrans } = await supabase
+            .from("customer_transactions")
+            .select("balance_after")
+            .eq("customer_id", c.id)
+            .order("created_at", { ascending: false })
+            .limit(1);
+
+        let balance = lastTrans?.length ? lastTrans[0].balance_after : 0;
+
+        table.innerHTML += `
+            <tr onclick="openLedger('${c.id}')">
+                <td>${c.customer_name}</td>
+                <td>${c.phone}</td>
+                <td>${balance}</td>
+            </tr>`;
     }
 }
 
-window.addCustomer = addCustomer;
+window.onload = loadCustomers;
+
+// فتح كشف حساب عميل
+function openLedger(customerId) {
+    localStorage.setItem("selectedCustomer", customerId);
+    window.location.href = "customer_ledger_details.html";
+}
+
+window.openLedger = openLedger;
