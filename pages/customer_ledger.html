@@ -1,65 +1,26 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دفتر الأستاذ للعملاء | SmartKey Pro</title>
-    <link rel="stylesheet" href="../style.css"> 
-    <style>
-        body { font-family: Tahoma, Arial, sans-serif; background-color: #f4f7f6; }
-        .container { max-width: 900px; margin: 20px auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-bottom: 20px; }
-        .search-area { display: flex; gap: 10px; margin-bottom: 20px; }
-        .search-area input, .search-area button { padding: 10px; border-radius: 5px; font-size: 16px; }
-        .search-area input { flex-grow: 1; border: 1px solid #ccc; }
-        .ledger-info { background: #ecf0f1; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #3498db; }
-        #client-name-display { font-weight: bold; font-size: 1.1em; color: #2c3e50; }
-        #current-balance-display { font-size: 1.5em; font-weight: bold; margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #bdc3c7; padding: 12px; text-align: right; }
-        th { background-color: #3498db; color: white; }
-        .debit { color: #c0392b; font-weight: bold; } /* مدين (على العميل) */
-        .credit { color: #27ae60; font-weight: bold; } /* دائن (لصالح العميل) */
-    </style>
+    <title>إضافة عميل</title>
 </head>
 <body>
-    <div class="container">
-        <h1>🏦 دفتر الأستاذ للعملاء</h1>
-        
-        <div class="search-area">
-            <input type="text" id="client-search" placeholder="ابحث باسم العميل أو رقم الهاتف">
-            <button onclick="searchClient()">بحث</button>
-        </div>
+    <h2>إضافة عميل جديد</h2>
 
-        <div class="ledger-info">
-            <div id="client-name-display">العميل المحدد: لم يتم الاختيار</div>
-            <div id="current-balance-display">الرصيد الحالي: 0.00</div>
-            <input type="hidden" id="client-id">
-        </div>
+    <label>اسم العميل:</label>
+    <input type="text" id="customer_name"><br><br>
 
-        <h2>سجل الحركات (الذمم المدينة)</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>التاريخ</th>
-                    <th>الوصف/المرجع</th>
-                    <th>مدين (عليه)</th>
-                    <th>دائن (له)</th>
-                    <th>الرصيد التراكمي</th>
-                </tr>
-            </thead>
-            <tbody id="ledger-body">
-                </tbody>
-        </table>
-        
-        <p style="text-align: center; margin-top: 30px;">
-            <a href="../index.html">العودة إلى القائمة الرئيسية</a>
-        </p>
+    <label>رقم الجوال:</label>
+    <input type="text" id="phone"><br><br>
 
-    </div>
+    <label>العنوان:</label>
+    <input type="text" id="address"><br><br>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase.js"></script> 
-    <script src="customer_ledger.js"></script>
+    <label>ملاحظات:</label>
+    <input type="text" id="notes"><br><br>
+
+    <button onclick="addCustomer()">إضافة العميل</button>
+
+    <script type="module" src="customer_ledger.js"></script>
 </body>
 </html>
