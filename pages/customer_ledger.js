@@ -1,27 +1,38 @@
-// pages/payment_voucher.js
+import { supabase } from "../supabase.js";
 
-import { supabase } from './supabase.js'; 
+// إضافة عميل جديد
+async function addCustomer() {
+    const name = document.getElementById("customer_name").value;
+    const phone = document.getElementById("phone").value;
+    const address = document.getElementById("address").value;
+    const notes = document.getElementById("notes").value;
 
-const expenseAccountSelect = document.getElementById('expense-account');
-const paymentAmountInput = document.getElementById('payment-amount');
-const paymentMethodSelect = document.getElementById('payment-method');
-const voucherDescriptionInput = document.getElementById('voucher-description');
+    if (!name || !phone) {
+        alert("الاسم ورقم الجوال مطلوبان");
+        return;
+    }
 
-// ******* الأرقام المؤكدة *******
-const ACCOUNT_ID_CASH = 1;         
-const ACCOUNT_ID_BANK = 2;         
-const ACCOUNT_ID_EXPENSE = 5;      
-// *****************************************************************************************
+    const { data, error } = await supabase
+        .from("customers")
+        .insert([
+            {
+                customer_name: name,
+                phone: phone,
+                address: address,
+                notes: notes
+            }
+        ]);
 
-// 1. جلب حسابات المصروفات عند تحميل الصفحة
-async function fetchExpenseAccounts() {
-    // ... كود جلب الحسابات
+    if (error) {
+        console.error(error);
+        alert("خطأ في الإضافة: " + error.message);
+    } else {
+        alert("تم إضافة العميل بنجاح!");
+        document.getElementById("customer_name").value = "";
+        document.getElementById("phone").value = "";
+        document.getElementById("address").value = "";
+        document.getElementById("notes").value = "";
+    }
 }
 
-// 2. دالة حفظ سند الصرف والترحيل المحاسبي
-window.savePaymentVoucher = async function() {
-    // ... كود التحقق من البيانات
-    // ... كود إنشاء القيد اليومي (المدين: المصروفات / الدائن: الصندوق أو البنك)
-}
-
-fetchExpenseAccounts();
+window.addCustomer = addCustomer;
