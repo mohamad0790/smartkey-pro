@@ -1,26 +1,32 @@
 <!DOCTYPE html>
-<html>
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>إضافة عميل</title>
+    <title>دفتر العملاء</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+        tr:hover {
+            background: #f0f0f0;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-    <h2>إضافة عميل جديد</h2>
 
-    <label>اسم العميل:</label>
-    <input type="text" id="customer_name"><br><br>
+<h2>📘 دفتر العملاء (الذمم)</h2>
 
-    <label>رقم الجوال:</label>
-    <input type="text" id="phone"><br><br>
+<table id="customers_table"></table>
 
-    <label>العنوان:</label>
-    <input type="text" id="address"><br><br>
+<script type="module" src="customer_ledger.js"></script>
 
-    <label>ملاحظات:</label>
-    <input type="text" id="notes"><br><br>
-
-    <button onclick="addCustomer()">إضافة العميل</button>
-
-    <script type="module" src="customer_ledger.js"></script>
 </body>
 </html>
