@@ -1,105 +1,95 @@
-import { supabase } from "./supabase.js";
+// =========================
+//  اتصال Supabase
+// =========================
+import { supabase } from "./../supabase.js";
 
-// تحميل الأصناف عند فتح الصفحة
-window.onload = loadProducts;
+// =========================
+//  دالة إضافة صنف جديد
+// =========================
+async function addProduct(event) {
+    event.preventDefault();
 
-// إضافة صنف جديد
-async function addProduct() {
+    // أخذ القيم من النموذج
+    const product_code = document.getElementById("product_code").value.trim();
     const name = document.getElementById("name").value.trim();
-    const code = document.getElementById("code").value.trim();
-    const buy = parseFloat(document.getElementById("buy").value.trim());
-    const sell = parseFloat(document.getElementById("sell").value.trim());
-    const quantity = parseInt(document.getElementById("quantity").value.trim()) || 1;
+    const buy = parseFloat(document.getElementById("buy").value);
+    const sell = parseFloat(document.getElementById("sell").value);
+    const quantity = parseInt(document.getElementById("quantity").value);
 
-    if (!name || !code || isNaN(buy) || isNaN(sell)) {
-        alert("الرجاء تعبئة جميع الحقول بشكل صحيح");
+    // التحقق من القيم
+    if (!product_code || !name || isNaN(buy) || isNaN(sell) || isNaN(quantity)) {
+        alert("❌ الرجاء تعبئة جميع الحقول بشكل صحيح.");
         return;
     }
 
-    const { error } = await supabase
+    // إرسال البيانات إلى جدول products
+    const { data, error } = await supabase
         .from("products")
         .insert([
             {
-                product_code: code,
+                product_code: product_code,
                 name: name,
-                buy: buy,       
-                sell: sell,     
+                buy: buy,
+                sell: sell,
                 quantity: quantity
             }
         ]);
 
+    // فحص الأخطاء
     if (error) {
-        alert("❌ خطأ في الإضافة: " + error.message);
+        console.error("خطأ أثناء إضافة الصنف:", error);
+        alert("❌ فشل الحفظ! تحقق من البيانات أو الاتصال.");
         return;
     }
 
-    alert("✔ تم إضافة الصنف بنجاح");
-    clearInputs();
+    // نجاح الإضافة
+    alert("✅ تم إضافة الصنف بنجاح!");
+
+    // تحديث الجدول بعد الإضافة
     loadProducts();
+
+    // إعادة تعيين النموذج
+    document.getElementById("productForm").reset();
 }
 
-// مسح الحقول
-function clearInputs() {
-    document.getElementById("name").value = "";
-    document.getElementById("code").value = "";
-    document.getElementById("buy").value = "";
-    document.getElementById("sell").value = "";
-    document.getElementById("quantity").value = "1";
-}
-
-// تحميل البيانات
+// =========================
+//  تحميل الأصناف من Supabase
+// =========================
 async function loadProducts() {
-    const table = document.getElementById("products-table");
-    table.innerHTML = "<tr><td colspan='6'>جاري التحميل...</td></tr>";
-
     const { data, error } = await supabase
         .from("products")
         .select("*")
-        .order("id", { ascending: false });
+        .order("id", { ascending: true });
 
     if (error) {
-        table.innerHTML = "<tr><td colspan='6'>حدث خطأ في جلب البيانات</td></tr>";
+        console.error("خطأ أثناء جلب البيانات:", error);
         return;
     }
 
-    table.innerHTML = "";
+    const tableBody = document.getElementById("productsTableBody");
+    tableBody.innerHTML = "";
 
-    data.forEach(p => {
+    data.forEach((item) => {
         const row = `
             <tr>
-                <td>${p.name}</td>
-                <td>${p.product_code}</td>
-                <td>${p.buy}</td>
-                <td>${p.sell}</td>
-                <td>${p.quantity}</td>
-                <td>
-                    <button onclick="deleteProduct(${p.id})" 
-                        style="background:#d9534f;color:white;border:none;padding:5px 10px;border-radius:5px;">
-                        حذف
-                    </button>
-                </td>
+                <td>${item.product_code}</td>
+                <td>${item.name}</td>
+                <td>${item.buy}</td>
+                <td>${item.sell}</td>
+                <td>${item.quantity}</td>
+                <td>${item.created_at ? item.created_at.substring(0, 10) : ""}</td>
             </tr>
         `;
-        table.innerHTML += row;
+        tableBody.insertAdjacentHTML("beforeend", row);
     });
 }
 
-// حذف صنف
-async function deleteProduct(id) {
-    if (!confirm("هل تريد حذف الصنف؟")) return;
-
-    const { error } = await supabase
-        .from("products")
-        .delete()
-        .eq("id", id);
-
-    if (error) {
-        alert("فشل الحذف: " + error.message);
-        return;
-    }
-
+// =========================
+//  تشغيل الصفحة
+// =========================
+document.addEventListener("DOMContentLoaded", () => {
     loadProducts();
-}
 
-window.addProduct = addProduct;
-window.deleteProduct = deleteProduct;
+    const form = document.getElementById("productForm");
+    if (form) form.addEventListener("submit", addProduct);
+});
