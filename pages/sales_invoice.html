@@ -1,90 +1,144 @@
 <!DOCTYPE html>
 <html lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>فاتورة مبيعات جديدة</title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #f5f5f5; direction: rtl; padding: 20px; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #333; margin-bottom: 25px; }
 
-        .client-section, .totals-section { background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #eee; }
-        .client-section input, .client-section button { padding: 10px; margin-left: 10px; border: 1px solid #ccc; border-radius: 5px; }
-        .client-info span { display: block; margin-top: 10px; font-size: 1.1em; }
-        .balance-box { background-color: #ffeb3b; padding: 10px; border-radius: 5px; font-weight: bold; margin-top: 10px; display: inline-block; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-        th { background-color: #e0e0e0; }
-        .totals-row td { background-color: #c8e6c9; font-weight: bold; }
-        
-        button#add-item { background: #00bcd4; color: white; padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
-        button#save-invoice { background: #4caf50; color: white; padding: 15px 20px; border: none; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 20px; font-size: 1.2em; }
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فاتورة مبيعات</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #000;
+            color: #fff;
+            direction: rtl;
+            padding: 15px;
+        }
+
+        h1 {
+            text-align: center;
+            border-bottom: 3px solid gold;
+            padding-bottom: 10px;
+        }
+
+        select, input {
+            width: 95%;
+            padding: 12px;
+            margin: 6px 0;
+            border-radius: 10px;
+            border: 1px solid gold;
+            font-size: 18px;
+            background: #111;
+            color: #fff;
+        }
+
+        .section {
+            padding: 15px;
+            background: #111;
+            border: 2px solid gold;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 10px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #333;
+            text-align: center;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: gold;
+            border: none;
+            color: #000;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .delete-btn {
+            background: red;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
     </style>
 </head>
+
 <body>
 
-    <div class="container">
-        <h1>فاتورة مبيعات جديدة 🧾</h1>
-        
-        <div class="client-section">
-            <label for="client-search">ابحث بالاسم أو رقم الجوال:</label>
-            <input type="text" id="client-search" placeholder="اسم العميل أو الجوال" style="width: 50%;">
-            <button onclick="searchClient()">بحث</button>
-            <div id="client-info" class="client-info">
-                <span id="client-name-display">اسم العميل: لم يتم الاختيار</span>
-                <span id="previous-balance-display">الرصيد السابق: <span class="balance-box">0.00</span></span>
-            </div>
-            <input type="hidden" id="client-id" value=""> </div>
+    <h1>🧾 فاتورة مبيعات</h1>
+
+    <!-- اختيار العميل -->
+    <div class="section">
+        <h3>👤 اختيار العميل</h3>
+        <select id="customerSelect">
+            <option value="">— اختر العميل —</option>
+        </select>
+
+        <button onclick="addNewCustomer()">➕ إضافة عميل جديد</button>
+    </div>
+
+    <!-- إدخال الصنف -->
+    <div class="section">
+        <h3>➕ إضافة صنف للفاتورة</h3>
+
+        <input id="barcodeInput" placeholder="📷 مسح باركود أو كتابة الكود">
+        <input id="productNameInput" placeholder="🔍 اسم الصنف">
+        <input id="productQty" type="number" placeholder="🔢 الكمية" value="1">
+
+        <button onclick="addItemToInvoice()">إضافة للفاتورة ➕</button>
+    </div>
+
+    <!-- جدول الفاتورة -->
+    <div class="section">
+        <h3>🧾 الأصناف المضافة</h3>
 
         <table>
             <thead>
                 <tr>
-                    <th style="width: 40%;">الصنف</th>
-                    <th>الكمية</th>
-                    <th>سعر الوحدة</th>
+                    <th>الصنف</th>
+                    <th>السعر</th>
+                    <th>كمية</th>
                     <th>الإجمالي</th>
-                    <th>إزالة</th>
+                    <th>حذف</th>
                 </tr>
             </thead>
-            <tbody id="invoice-items-body">
-                </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="5">
-                        <button id="add-item">إضافة صنف ➕</button>
-                    </td>
-                </tr>
-            </tfoot>
+            <tbody id="invoiceTableBody"></tbody>
         </table>
-
-        <div class="totals-section">
-            <div style="float: right; width: 50%;">
-                <label for="payment-method">طريقة الدفع:</label>
-                <select id="payment-method" style="padding: 10px; border-radius: 5px;">
-                    <option value="cash">نقداً (صندوق)</option>
-                    <option value="credit">آجل (ذمم مدينة)</option>
-                    <option value="bank">بطاقة (بنك)</option>
-                </select>
-                <label for="payment-amount" style="margin-top: 10px; display: block;">المبلغ المدفوع الآن:</label>
-                <input type="number" id="payment-amount" value="0.00" min="0" style="width: 95%;">
-            </div>
-
-            <div style="float: left; width: 45%; text-align: left;">
-                <p>إجمالي الفاتورة (قبل الخصم): <span id="sub-total">0.00</span></p>
-                <p>الخصم: <input type="number" id="discount" value="0.00" min="0" oninput="calculateTotal()"> </p>
-                <p style="font-size: 1.5em; color: #4CAF50;">الإجمالي المستحق: <span id="final-total">0.00</span></p>
-                <p style="font-size: 1.2em; color: #f44336;">المتبقي على العميل: <span id="remaining-due">0.00</span></p>
-            </div>
-            <div style="clear: both;"></div>
-        </div>
-
-        <button id="save-invoice" onclick="saveInvoice()">حفظ الفاتورة</button>
     </div>
 
-    <script type="module" src="./supabase.js"></script>
-    <script type="module" src="./sales_invoice.js"></script>
+    <!-- الإجمالي -->
+    <div class="section">
+        <h3>💰 المجموع</h3>
+
+        <label>
+            <input type="checkbox" id="taxCheck"> إضافة ضريبة 15%
+        </label>
+
+        <p>الإجمالي بدون ضريبة: <span id="totalNoTax">0</span> ريال</p>
+        <p>الضريبة: <span id="taxAmount">0</span> ريال</p>
+        <p><b>الإجمالي النهائي: <span id="finalTotal">0</span> ريال</b></p>
+
+        <input id="paidAmount" type="number" placeholder="💵 المدفوع">
+        <p>المتبقي: <span id="remainingAmount">0</span> ريال</p>
+    </div>
+
+    <button onclick="saveInvoice()">💾 حفظ الفاتورة</button>
+
+    <script type="module" src="../supabase.js"></script>
+    <script type="module" src="../js/invoice.js"></script>
 
 </body>
+
 </html>
