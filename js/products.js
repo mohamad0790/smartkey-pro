@@ -1,12 +1,7 @@
 // =========================
-//  اختبار تحميل الملف
-// =========================
-alert("products.js loaded ✔️");
-
-// =========================
 //  اتصال Supabase
 // =========================
-import { supabase } from "https://mohamad0790.github.io/smartkey-pro/supabase.js";
+import { supabase } from "../supabase.js";
 
 // =========================
 //  إضافة صنف جديد
@@ -29,7 +24,7 @@ async function addProduct() {
         .insert([{ product_code, name, buy, sell, quantity }]);
 
     if (error) {
-        console.error(error);
+        console.error("Supabase Insert Error:", error);
         alert("❌ فشل إضافة الصنف");
         return;
     }
@@ -49,7 +44,7 @@ async function loadProducts() {
         .order("id", { ascending: true });
 
     if (error) {
-        console.error(error);
+        console.error("Supabase Load Error:", error);
         return;
     }
 
