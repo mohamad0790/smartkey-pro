@@ -3,65 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>القائمة الرئيسية | SmartKey Pro</title>
+    <title>SmartKey Pro | القائمة الرئيسية</title>
+
     <style>
-        body { font-family: Arial, sans-serif; background: #f0f4f8; direction: rtl; text-align: center; padding-top: 50px; }
-        .menu-container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
-        h1 { color: #2c3e50; margin-bottom: 30px; border-bottom: 3px solid #3498db; padding-bottom: 10px; display: inline-block; }
-        h2 { color: #555; margin-top: 25px; margin-bottom: 15px; }
-        .menu-item { display: block; margin-bottom: 15px; }
-        .menu-item a {
-            display: block;
-            padding: 15px 20px;
-            background-color: #3498db;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 1.2em;
-            transition: background-color 0.3s;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Tajawal", Arial, sans-serif;
+            background: #000;
+            direction: rtl;
+            text-align: center;
+            color: #fff;
         }
-        .receipt-voucher-link {
-            background-color: #27ae60 !important;
+
+        h1 {
+            margin-top: 25px;
+            font-size: 28px;
+            color: #f7c300;
+            text-shadow: 0 0 10px #f7c300;
         }
-        .receipt-voucher-link:hover {
-            background-color: #2ecc71 !important;
+
+        .grid {
+            margin: 30px auto;
+            width: 90%;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
         }
-        .menu-item a:hover {
-            background-color: #2980b9;
+
+        .card {
+            background: #111;
+            border: 2px solid #f7c300;
+            border-radius: 15px;
+            padding: 25px 10px;
+            box-shadow: 0 0 12px rgba(247, 195, 0, 0.3);
+            transition: 0.25s;
         }
-        .separator { margin: 30px 0; border: none; border-top: 1px dashed #ccc; }
+
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 18px rgba(247, 195, 0, 0.5);
+            cursor: pointer;
+        }
+
+        .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .label {
+            font-size: 20px;
+            font-weight: bold;
+            color: #f7c300;
+        }
+
+        .barcode-box {
+            width: 90%;
+            margin: 20px auto;
+        }
     </style>
 </head>
+
 <body>
 
-    <div class="menu-container">
-        <h1>القائمة الرئيسية 📊</h1>
+    <h1>SmartKey Pro ✨</h1>
 
-        <h2>نظام التشغيل</h2>
-        <div class="menu-item">
-            <a href="pages/products.html">📦 إدارة الأصناف والمخزون</a> 
-        </div>
-        <div class="menu-item">
-            <a href="pages/sales_invoice.html">🛒 فاتورة المبيعات الجديدة</a>
-        </div>
-        
-        <hr class="separator">
-
-        <h2>النظام المحاسبي</h2>
-        <div class="menu-item">
-            <a href="pages/journal_entry.html">📒 إدخال قيد يومية يدوي</a> 
-        </div>
-        <div class="menu-item">
-            <a href="pages/customer_ledger.html">👥 العملاء</a>
-        </div>
-        <div class="menu-item">
-            <a href="pages/receipt_voucher.html" class="receipt-voucher-link">💵 سند قبض نقدي</a>
+    <div class="grid">
+        <div class="card" onclick="go('pages/products.html')">
+            <div class="icon">📦</div>
+            <div class="label">المخزون</div>
         </div>
 
-        <!-- ⚠️ تم حذف سند الصرف النقدي بالكامل -->
-        
+        <div class="card" onclick="go('pages/invoices.html')">
+            <div class="icon">🧾</div>
+            <div class="label">الفواتير</div>
+        </div>
+
+        <div class="card" onclick="go('pages/sales.html')">
+            <div class="icon">💰</div>
+            <div class="label">المبيعات</div>
+        </div>
+
+        <div class="card" onclick="go('pages/purchases.html')">
+            <div class="icon">🛒</div>
+            <div class="label">المشتريات</div>
+        </div>
+
+        <div class="card" onclick="go('pages/customers.html')">
+            <div class="icon">👤</div>
+            <div class="label">العملاء</div>
+        </div>
+
+        <div class="card" onclick="go('pages/sellers.html')">
+            <div class="icon">👨‍🔧</div>
+            <div class="label">البائعين</div>
+        </div>
     </div>
+
+    <div class="barcode-box">
+        <div class="card" onclick="go('pages/barcode.html')" style="width:100%;">
+            <div class="icon">🔳</div>
+            <div class="label">صناعة الباركود</div>
+        </div>
+    </div>
+
+    <script>
+        function go(url) {
+            window.location.href = url;
+        }
+    </script>
 
 </body>
 </html>
