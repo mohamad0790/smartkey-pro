@@ -1,144 +1,126 @@
 <!DOCTYPE html>
-<html lang="ar">
-
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
     <title>فاتورة مبيعات</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
         body {
-            font-family: Arial;
             background: #000;
             color: #fff;
-            direction: rtl;
-            padding: 15px;
+            font-family: Arial;
+            margin: 0;
+            padding: 0;
         }
-
-        h1 {
+        header {
+            background: #111;
+            padding: 15px;
             text-align: center;
             border-bottom: 3px solid gold;
-            padding-bottom: 10px;
+            font-size: 26px;
+            font-weight: bold;
         }
-
-        select, input {
-            width: 95%;
-            padding: 12px;
-            margin: 6px 0;
-            border-radius: 10px;
-            border: 1px solid gold;
-            font-size: 18px;
+        .box {
             background: #111;
-            color: #fff;
-        }
-
-        .section {
             padding: 15px;
-            background: #111;
-            border: 2px solid gold;
+            margin: 15px;
             border-radius: 10px;
-            margin-bottom: 15px;
+            border: 2px solid gold;
         }
-
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            font-size: 17px;
+        }
+        button {
+            padding: 12px;
+            width: 100%;
+            margin-top: 10px;
+            background: gold;
+            color: #000;
+            border: none;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+        }
         table {
             width: 100%;
             margin-top: 10px;
             border-collapse: collapse;
         }
-
         th, td {
             padding: 10px;
-            border-bottom: 1px solid #333;
             text-align: center;
+            background: #111;
+            border-bottom: 1px solid #333;
         }
-
-        button {
-            width: 100%;
-            padding: 15px;
-            background: gold;
-            border: none;
-            color: #000;
-            font-size: 20px;
-            font-weight: bold;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
         .delete-btn {
             background: red;
             color: #fff;
-            padding: 8px 12px;
-            border-radius: 6px;
+            padding: 6px 10px;
+            border-radius: 5px;
             cursor: pointer;
+            border: none;
         }
     </style>
 </head>
 
 <body>
 
-    <h1>🧾 فاتورة مبيعات</h1>
+<header>🧾 إنشاء فاتورة جديدة</header>
 
-    <!-- اختيار العميل -->
-    <div class="section">
-        <h3>👤 اختيار العميل</h3>
-        <select id="customerSelect">
-            <option value="">— اختر العميل —</option>
-        </select>
+<div class="box">
+    <label>👤 اختر العميل</label>
+    <select id="customerSelect"></select>
+    <button onclick="addNewCustomer()">➕ إضافة عميل جديد</button>
+</div>
 
-        <button onclick="addNewCustomer()">➕ إضافة عميل جديد</button>
-    </div>
+<div class="box">
+    <label>🔎 بحث الصنف (باركود / كود / اسم)</label>
+    <input id="barcodeInput" placeholder="ابحث بالباركود">
+    <input id="productNameInput" placeholder="ابحث بالاسم">
 
-    <!-- إدخال الصنف -->
-    <div class="section">
-        <h3>➕ إضافة صنف للفاتورة</h3>
+    <input type="number" id="productQty" value="1" placeholder="الكمية">
+    <button onclick="addItemToInvoice()">➕ إضافة الصنف للفاتورة</button>
+</div>
 
-        <input id="barcodeInput" placeholder="📷 مسح باركود أو كتابة الكود">
-        <input id="productNameInput" placeholder="🔍 اسم الصنف">
-        <input id="productQty" type="number" placeholder="🔢 الكمية" value="1">
+<div class="box">
+    <table>
+        <thead>
+            <tr>
+                <th>الصنف</th>
+                <th>السعر</th>
+                <th>الكمية</th>
+                <th>الإجمالي</th>
+                <th>حذف</th>
+            </tr>
+        </thead>
+        <tbody id="invoiceTableBody"></tbody>
+    </table>
+</div>
 
-        <button onclick="addItemToInvoice()">إضافة للفاتورة ➕</button>
-    </div>
+<div class="box">
+    <label><input type="checkbox" id="taxCheck"> تطبيق ضريبة 15%</label>
 
-    <!-- جدول الفاتورة -->
-    <div class="section">
-        <h3>🧾 الأصناف المضافة</h3>
+    <p>الإجمالي بدون ضريبة: <span id="totalNoTax">0</span> ريال</p>
+    <p>الضريبة: <span id="taxAmount">0</span> ريال</p>
+    <h3>الإجمالي النهائي: <span id="finalTotal">0</span> ريال</h3>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>الصنف</th>
-                    <th>السعر</th>
-                    <th>كمية</th>
-                    <th>الإجمالي</th>
-                    <th>حذف</th>
-                </tr>
-            </thead>
-            <tbody id="invoiceTableBody"></tbody>
-        </table>
-    </div>
+    <label>المبلغ المدفوع</label>
+    <input id="paidAmount" type="number" placeholder="0">
 
-    <!-- الإجمالي -->
-    <div class="section">
-        <h3>💰 المجموع</h3>
-
-        <label>
-            <input type="checkbox" id="taxCheck"> إضافة ضريبة 15%
-        </label>
-
-        <p>الإجمالي بدون ضريبة: <span id="totalNoTax">0</span> ريال</p>
-        <p>الضريبة: <span id="taxAmount">0</span> ريال</p>
-        <p><b>الإجمالي النهائي: <span id="finalTotal">0</span> ريال</b></p>
-
-        <input id="paidAmount" type="number" placeholder="💵 المدفوع">
-        <p>المتبقي: <span id="remainingAmount">0</span> ريال</p>
-    </div>
+    <h3>المتبقي: <span id="remainingAmount">0</span> ريال</h3>
 
     <button onclick="saveInvoice()">💾 حفظ الفاتورة</button>
+</div>
 
-    <script type="module" src="../supabase.js"></script>
-    <script type="module" src="../js/invoice.js"></script>
+<script type="module" src="../supabase.js"></script>
+<script type="module" src="../js/invoice.js"></script>
 
 </body>
-
 </html>
