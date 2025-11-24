@@ -73,8 +73,8 @@
 
     <h1>إدارة الأصناف 🛒</h1>
 
+    <input id="product_code" placeholder="كود الصنف" />
     <input id="name" placeholder="اسم الصنف" />
-    <input id="code" placeholder="كود الصنف" />
     <input id="buy" placeholder="سعر الشراء" />
     <input id="sell" placeholder="سعر البيع" />
     <input id="quantity" placeholder="الكمية" value="1" />
@@ -84,20 +84,20 @@
     <table>
         <thead>
             <tr>
-                <th>الاسم</th>
                 <th>الكود</th>
+                <th>الاسم</th>
                 <th>الشراء</th>
                 <th>البيع</th>
                 <th>الكمية</th>
-                <th>حذف</th>
+                <th>التاريخ</th>
             </tr>
         </thead>
-        <tbody id="products-table"></tbody>
+        <tbody id="productsTableBody"></tbody>
     </table>
 
-    <!-- استيراد الجافاسكربت -->
-    <script type="module" src="./supabase.js"></script>
-    <script type="module" src="./products.js"></script>
+    <!-- ربط ملفات الجافاسكربت -->
+    <script type="module" src="../supabase.js"></script>
+    <script type="module" src="../js/products.js"></script>
 
 </body>
 
