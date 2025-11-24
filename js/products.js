@@ -1,95 +1,94 @@
-// =========================
-//  اتصال Supabase
-// =========================
-import { supabase } from "./../supabase.js";
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الأصناف</title>
 
-// =========================
-//  دالة إضافة صنف جديد
-// =========================
-async function addProduct(event) {
-    event.preventDefault();
+    <style>
+        body {
+            font-family: Arial;
+            background: #f5f5f5;
+            text-align: center;
+            direction: rtl;
+            padding: 20px;
+        }
 
-    // أخذ القيم من النموذج
-    const product_code = document.getElementById("product_code").value.trim();
-    const name = document.getElementById("name").value.trim();
-    const buy = parseFloat(document.getElementById("buy").value);
-    const sell = parseFloat(document.getElementById("sell").value);
-    const quantity = parseInt(document.getElementById("quantity").value);
+        h1 {
+            font-size: 28px;
+            margin-bottom: 25px;
+        }
 
-    // التحقق من القيم
-    if (!product_code || !name || isNaN(buy) || isNaN(sell) || isNaN(quantity)) {
-        alert("❌ الرجاء تعبئة جميع الحقول بشكل صحيح.");
-        return;
-    }
+        input {
+            width: 90%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 17px;
+        }
 
-    // إرسال البيانات إلى جدول products
-    const { data, error } = await supabase
-        .from("products")
-        .insert([
-            {
-                product_code: product_code,
-                name: name,
-                buy: buy,
-                sell: sell,
-                quantity: quantity
-            }
-        ]);
+        button {
+            width: 90%;
+            padding: 14px;
+            background: #28a745;
+            color: white;
+            border: none;
+            font-size: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
 
-    // فحص الأخطاء
-    if (error) {
-        console.error("خطأ أثناء إضافة الصنف:", error);
-        alert("❌ فشل الحفظ! تحقق من البيانات أو الاتصال.");
-        return;
-    }
+        table {
+            width: 100%;
+            margin-top: 25px;
+            background: white;
+            border-collapse: collapse;
+            font-size: 17px;
+        }
 
-    // نجاح الإضافة
-    alert("✅ تم إضافة الصنف بنجاح!");
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
 
-    // تحديث الجدول بعد الإضافة
-    loadProducts();
+        th {
+            background: #ddd;
+        }
+    </style>
+</head>
+<body>
 
-    // إعادة تعيين النموذج
-    document.getElementById("productForm").reset();
-}
+    <h1>إدارة الأصناف 🛒</h1>
 
-// =========================
-//  تحميل الأصناف من Supabase
-// =========================
-async function loadProducts() {
-    const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .order("id", { ascending: true });
+    <form id="productForm">
+        <input id="product_code" placeholder="كود الصنف" />
+        <input id="name" placeholder="اسم الصنف" />
+        <input id="buy" placeholder="سعر الشراء" />
+        <input id="sell" placeholder="سعر البيع" />
+        <input id="quantity" placeholder="الكمية" value="1" />
 
-    if (error) {
-        console.error("خطأ أثناء جلب البيانات:", error);
-        return;
-    }
+        <button type="submit">إضافة الصنف ➕</button>
+    </form>
 
-    const tableBody = document.getElementById("productsTableBody");
-    tableBody.innerHTML = "";
-
-    data.forEach((item) => {
-        const row = `
+    <table>
+        <thead>
             <tr>
-                <td>${item.product_code}</td>
-                <td>${item.name}</td>
-                <td>${item.buy}</td>
-                <td>${item.sell}</td>
-                <td>${item.quantity}</td>
-                <td>${item.created_at ? item.created_at.substring(0, 10) : ""}</td>
+                <th>الكود</th>
+                <th>الاسم</th>
+                <th>الشراء</th>
+                <th>البيع</th>
+                <th>الكمية</th>
+                <th>التاريخ</th>
             </tr>
-        `;
-        tableBody.insertAdjacentHTML("beforeend", row);
-    });
-}
+        </thead>
+        <tbody id="productsTableBody"></tbody>
+    </table>
 
-// =========================
-//  تشغيل الصفحة
-// =========================
-document.addEventListener("DOMContentLoaded", () => {
-    loadProducts();
+    <!-- روابط السكربتات -->
+    <script type="module" src="https://mohamad0790.github.io/smartkey-pro/supabase.js"></script>
+    <script type="module" src="https://mohamad0790.github.io/smartkey-pro/js/products.js"></script>
 
-    const form = document.getElementById("productForm");
-    if (form) form.addEventListener("submit", addProduct);
-});
+</body>
+</html>
