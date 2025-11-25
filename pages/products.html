@@ -1,137 +1,30 @@
 <!DOCTYPE html>
-<html lang="ar">
-
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>إدارة المخزون</title>
+    <meta charset="UTF-8">
+    <title>إضافة صنف</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
-        body {
-            font-family: Arial;
-            background: #000;
-            color: #fff;
-            direction: rtl;
-            margin: 0;
-            padding: 0;
-        }
-
-        header {
-            background: #111;
-            padding: 20px;
-            text-align: center;
-            border-bottom: 4px solid gold;
-            font-size: 28px;
-            font-weight: bold;
-        }
-
-        .search-box input {
-            width: 90%;
-            margin: 20px auto;
-            display: block;
-            padding: 12px;
-            border: 2px solid gold;
-            border-radius: 10px;
-            font-size: 18px;
-        }
-
-        .add-box {
-            background: #111;
-            padding: 15px;
-            margin: 15px;
-            border: 2px solid gold;
-            border-radius: 10px;
-        }
-
-        .add-box input {
-            width: 96%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            font-size: 17px;
-        }
-
-        .add-box button {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            background: gold;
-            color: #000;
-            font-size: 19px;
-            font-weight: bold;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        table th,
-        table td {
-            padding: 10px;
-            text-align: center;
-            background: #111;
-            color: #fff;
-            border-bottom: 1px solid #333;
-        }
-
-        img.product-img {
-            width: 55px;
-            height: 55px;
-            object-fit: cover;
-            border-radius: 6px;
-            border: 2px solid gold;
-        }
+        body { background:#000; color:#fff; font-family:Arial; padding:20px; text-align:center; }
+        input { width:90%; padding:12px; margin:10px auto; border-radius:10px; border:1px solid gold; font-size:18px; display:block; }
+        button { background:gold; color:#000; padding:12px; width:90%; border:none; border-radius:10px; font-size:20px; font-weight:bold; margin-top:10px; }
     </style>
 </head>
 
 <body>
 
-    <header>📦 إدارة المخزون</header>
+<h2>📦 إضافة صنف جديد</h2>
 
-    <div class="search-box">
-        <input id="search" placeholder="🔎 ابحث عن صنف" />
-    </div>
+<input id="productCode" placeholder="كود الصنف">
+<input id="productName" placeholder="اسم الصنف">
+<input id="buyPrice" type="number" placeholder="سعر الشراء">
+<input id="sellPrice" type="number" placeholder="سعر البيع">
+<input id="quantity" type="number" placeholder="الكمية">
 
-    <!-- 🟨 صندوق إضافة الصنف -->
-    <div class="add-box">
-        <input id="product_code" placeholder="كود الصنف" />
-        <input id="name" placeholder="اسم الصنف" />
-        <input id="buy" placeholder="سعر الشراء" />
-        <input id="sell" placeholder="سعر البيع" />
-        <input id="quantity" placeholder="الكمية" />
+<button id="addProduct">إضافة الصنف</button>
 
-        <!-- 🟨 اختيار صورة (يدعم الكاميرا + الاستديو) -->
-        <input type="file" id="imageFile" accept="image/*">
-
-        <!-- 🟨 معاينة الصورة -->
-        <img id="preview" style="width:120px; display:none; margin-top:10px; border:2px solid gold; border-radius:10px;">
-        
-        <button onclick="addProduct()">➕ إضافة الصنف</button>
-    </div>
-
-    <!-- 🟨 جدول المنتجات -->
-    <table>
-        <thead>
-            <tr>
-                <th>الصورة</th>
-                <th>الكود</th>
-                <th>الصنف</th>
-                <th>شراء</th>
-                <th>بيع</th>
-                <th>كمية</th>
-                <th>تاريخ</th>
-            </tr>
-        </thead>
-        <tbody id="productsTableBody"></tbody>
-    </table>
-
-    <script type="module" src="../supabase.js"></script>
-    <script type="module" src="../js/products.js"></script>
+<script type="module" src="../js/products.js"></script>
 
 </body>
 </html>
