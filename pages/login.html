@@ -62,19 +62,25 @@
     <div class="box">
         <h1>🔐 تسجيل الدخول</h1>
 
-        <!-- ← هنا التعديل: صار id="user" -->
         <input id="user" placeholder="معرّف المستخدم (مثل admin)" />
-
         <input id="pin" placeholder="الرمز السري (مثل 1234)" type="password" />
 
         <button onclick="login()">تسجيل الدخول</button>
 
-        <!-- مكان ظهور الرسائل -->
         <p id="msg"></p>
     </div>
 
-    <!-- استدعاء ملف تسجيل الدخول فقط -->
-    <script type="module" src="./login.js"></script>
+    <!-- Supabase connection -->
+    <script type="module" src="/smartkey-pro/supabase.js"></script>
+
+    <!-- تحميل ملف login.js الصحيح -->
+    <script>
+      const page = "login";
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = `/smartkey-pro/js/${page}.js`;
+      document.body.appendChild(script);
+    </script>
 
 </body>
 </html>
