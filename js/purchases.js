@@ -1,38 +1,60 @@
 import { supabase } from "../supabase.js";
 
-let imageBase64 = null;
+let uploadedImageUrl = null;
 
 // تحميل الموردين
 window.onload = () => {
     loadSuppliers();
 };
 
-// قائمة الموردين
 async function loadSuppliers() {
     const { data } = await supabase.from("suppliers").select("*");
     const sel = document.getElementById("supplier");
 
-    data.forEach(s => {
+    data?.forEach(s => {
         sel.innerHTML += `<option value="${s.id}">${s.name}</option>`;
     });
 }
 
-// عرض الصورة مباشرة
+// رفع الصورة إلى Storage
+async function uploadImage(file, code) {
+    if (!file) return null;
+
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${code}_${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    let { error: uploadError } = await supabase.storage
+        .from("images")
+        .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+        console.log(uploadError);
+        alert("خطأ في رفع الصورة");
+        return null;
+    }
+
+    const { data } = supabase.storage
+        .from("images")
+        .getPublicUrl(filePath);
+
+    return data.publicUrl;
+}
+
+// المعاينة
 document.getElementById("imageFile").onchange = function (e) {
     const file = e.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = () => {
-        imageBase64 = reader.result;
-        const img = document.getElementById("preview");
-        img.src = imageBase64;
-        img.style.display = "block";
+        document.getElementById("preview").src = reader.result;
+        document.getElementById("preview").style.display = "block";
     };
     reader.readAsDataURL(file);
 };
 
-// حساب الإجمالي مباشرة
+// تحديث الإجمالي
 ["buy", "qty"].forEach(id => {
     document.getElementById(id).oninput = () => {
         const buy = Number(document.getElementById("buy").value);
@@ -41,53 +63,71 @@ document.getElementById("imageFile").onchange = function (e) {
     };
 });
 
-// حفظ عملية الشراء
+// حفظ المشتريات
 window.savePurchase = async function () {
     const supplier_id = document.getElementById("supplier").value;
     const code = document.getElementById("code").value.trim();
     const name = document.getElementById("name").value.trim();
-    const buy_price = Number(document.getElementById("buy").value);
+    const buy = Number(document.getElementById("buy").value);
     const qty = Number(document.getElementById("qty").value);
-    const total = buy_price * qty;
+    const imageFile = document.getElementById("imageFile").files[0];
 
-    if (!supplier_id || !code || !name || buy_price <= 0 || qty <= 0) {
-        return alert("⚠️ الرجاء تعبئة البيانات كاملة");
+    if (!supplier_id || !code || !name || buy <= 0 || qty <= 0) {
+        return alert("⚠️ الرجاء تعبئة جميع البيانات");
     }
 
-    // 1) إضافة الصنف إذا غير موجود
-    let { data: product } = await supabase
+    // 1) رفع الصورة أولاً
+    let image_url = null;
+
+    if (imageFile) {
+        image_url = await uploadImage(imageFile, code);
+    }
+
+    // 2) جلب المنتج إن وجد
+    const { data: existingProduct } = await supabase
         .from("products")
         .select("*")
-        .eq("code", code)
+        .eq("product_code", code)
         .single();
 
-    if (!product) {
-        const insertRes = await supabase.from("products").insert([
-            {
-                code,
-                name,
-                buy_price,
-                sell_price: 0,
-                stock: qty,
-                image: imageBase64
-            }
-        ]).select().single();
+    let product_id;
 
-        product = insertRes.data;
+    if (!existingProduct) {
+        // إنشاء منتج جديد
+        const { data: newProd, error } = await supabase
+            .from("products")
+            .insert([
+                {
+                    product_code: code,
+                    name: name,
+                    buy: buy,
+                    sell: buy + 5, // سعر افتراضي مؤقت
+                    quantity: qty,
+                    image_url: image_url
+                }
+            ])
+            .select()
+            .single();
+
+        product_id = newProd.id;
     } else {
-        // تحديث المخزون فقط
+        // تحديث المنتج الموجود
+        product_id = existingProduct.id;
+
         await supabase
             .from("products")
             .update({
-                buy_price,
-                stock: product.stock + qty,
-                image: imageBase64 || product.image
+                buy: buy,
+                quantity: existingProduct.quantity + qty,
+                image_url: image_url || existingProduct.image_url
             })
-            .eq("id", product.id);
+            .eq("id", existingProduct.id);
     }
 
-    // 2) إنشاء فاتورة مشتريات
-    const purchase = await supabase
+    // 3) إنشاء فاتورة مشتريات
+    const total = buy * qty;
+
+    const { data: pur } = await supabase
         .from("purchases")
         .insert([
             {
@@ -98,16 +138,16 @@ window.savePurchase = async function () {
         .select()
         .single();
 
-    // 3) إضافة عناصر الفاتورة
+    // 4) إضافة عنصر الفاتورة
     await supabase.from("purchase_items").insert([
         {
-            purchase_id: purchase.data.id,
-            product_id: product.id,
+            purchase_id: pur.id,
+            product_id: product_id,
             qty,
-            buy_price
+            buy_price: buy
         }
     ]);
 
-    alert("✔ تم حفظ المشتريات");
+    alert("✔ تم حفظ المشتريات بنجاح");
     window.location.reload();
 };
