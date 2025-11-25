@@ -1,58 +1,33 @@
 import { supabase } from "../supabase.js";
 
-let customerId = null;
+const id = localStorage.getItem("editCustomerId");
 
-// تحميل بيانات العميل
-async function loadCustomer() {
-    customerId = localStorage.getItem("editCustomer");
+async function load(){
+  const { data, error } = await supabase
+    .from("customers")
+    .select("*")
+    .eq("id", id)
+    .single();
 
-    if (!customerId) {
-        alert("لا يوجد عميل محدد");
-        window.location.href = "customers.html";
-        return;
-    }
+  if(error){ console.error(error); alert("ما لقينا العميل"); return; }
 
-    const { data, error } = await supabase
-        .from("customers")
-        .select("*")
-        .eq("id", customerId)
-        .single();
-
-    if (error || !data) {
-        alert("حدث خطأ عند تحميل بيانات العميل");
-        return;
-    }
-
-    document.getElementById("name").value = data.name ?? data.customer_name;
-    document.getElementById("phone").value = data.phone ?? "";
-    document.getElementById("note").value = data.note ?? "";
+  document.getElementById("name").value = data.name || "";
+  document.getElementById("phone").value = data.phone || "";
 }
 
-// حفظ التعديلات
-async function updateCustomer() {
-    const name = document.getElementById("name").value.trim();
-    const phone = document.getElementById("phone").value.trim();
-    const note = document.getElementById("note").value.trim();
+window.updateCustomer = async ()=>{
+  const name = document.getElementById("name").value.trim();
+  const phone = document.getElementById("phone").value.trim();
 
-    if (!name) {
-        alert("❗ اكتب اسم العميل");
-        return;
-    }
+  const { error } = await supabase
+    .from("customers")
+    .update({ name, phone })
+    .eq("id", id);
 
-    const { error } = await supabase
-        .from("customers")
-        .update({ name, phone, note })
-        .eq("id", customerId);
+  if(error){ console.error(error); alert("فشل التحديث"); return; }
 
-    if (error) {
-        alert("⚠ خطأ أثناء الحفظ");
-        console.error(error);
-        return;
-    }
+  localStorage.removeItem("editCustomerId");
+  location.href = "customers.html";
+};
 
-    alert("✔ تم حفظ التعديلات بنجاح");
-    window.location.href = "customers.html";
-}
-
-window.updateCustomer = updateCustomer;
-window.addEventListener("load", loadCustomer);
+load();
