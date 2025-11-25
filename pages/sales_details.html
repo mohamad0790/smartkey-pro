@@ -101,7 +101,17 @@ th, td {
 
 </div>
 
-<script type="module" src="./sales_details.js"></script>
+<!-- Supabase connection الصحيح -->
+<script type="module" src="/smartkey-pro/supabase.js"></script>
+
+<!-- تحميل سكربت الصفحة الصحيح -->
+<script>
+  const page = "sales_details";
+  const script = document.createElement("script");
+  script.type = "module";
+  script.src = `/smartkey-pro/js/${page}.js`;
+  document.body.appendChild(script);
+</script>
 
 </body>
 </html>
