@@ -40,7 +40,17 @@
   <tbody id="customersBody"></tbody>
 </table>
 
-<script type="module" src="../supabase.js"></script>
-<script type="module" src="../js/customers.js"></script>
+<!-- Supabase connection -->
+<script type="module" src="/smartkey-pro/supabase.js"></script>
+
+<!-- Load correct JS file automatically -->
+<script>
+  const page = "customers";
+  const script = document.createElement("script");
+  script.type = "module";
+  script.src = `/smartkey-pro/js/${page}.js`;
+  document.body.appendChild(script);
+</script>
+
 </body>
 </html>
