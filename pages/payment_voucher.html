@@ -46,11 +46,19 @@
         <p style="text-align: center; margin-top: 30px;">
             <a href="../index.html">العودة إلى القائمة الرئيسية</a>
         </p>
-
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase.js"></script> 
-    <script src="payment_voucher.js"></script>
+    <!-- Supabase connection الصحيح -->
+    <script type="module" src="/smartkey-pro/supabase.js"></script>
+
+    <!-- تحميل سكربت الصفحة الصحيح -->
+    <script>
+      const page = "payment_voucher";
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = `/smartkey-pro/js/${page}.js`;
+      document.body.appendChild(script);
+    </script>
+
 </body>
 </html>
