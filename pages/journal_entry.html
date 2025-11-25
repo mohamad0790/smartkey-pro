@@ -30,13 +30,13 @@
         
         <div class="entry-header">
             <label for="entry-date">تاريخ القيد:</label>
-            <input type="date" id="entry-date" value="<%= new Date().toISOString().slice(0, 10) %>" required>
-            
+            <input type="date" id="entry-date">
+
             <label for="reference-number">رقم المستند المرجعي (اختياري):</label>
             <input type="text" id="reference-number" placeholder="مثل رقم فاتورة أو سند">
 
             <label for="description">الوصف / البيان:</label>
-            <textarea id="description" placeholder="شرح تفصيلي للعملية" rows="2" required></textarea>
+            <textarea id="description" placeholder="شرح تفصيلي للعملية" rows="2"></textarea>
         </div>
 
         <table>
@@ -48,8 +48,7 @@
                     <th style="width: 10%;">إزالة</th>
                 </tr>
             </thead>
-            <tbody id="entry-lines-body">
-                </tbody>
+            <tbody id="entry-lines-body"></tbody>
             <tfoot>
                 <tr class="controls-row">
                     <td>
@@ -68,8 +67,17 @@
         <button id="save-entry" disabled>حفظ القيد اليومي</button>
     </div>
 
-    <script type="module" src="./supabase.js"></script>
-    <script type="module" src="./journal_entry.js"></script>
+    <!-- Supabase connection الصحيح -->
+    <script type="module" src="/smartkey-pro/supabase.js"></script>
+
+    <!-- تحميل سكربت الصفحة تلقائياً -->
+    <script>
+      const page = "journal_entry";
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = `/smartkey-pro/js/${page}.js`;
+      document.body.appendChild(script);
+    </script>
 
 </body>
 </html>
