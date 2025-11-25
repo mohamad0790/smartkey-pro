@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>إضافة عملية للعميل</title>
+
+    <style>
+        body { font-family: Arial; direction: rtl; padding: 15px; }
+        .box {
+            background: #fff;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+        input, select {
+            width: 100%; padding: 12px; margin-bottom: 12px;
+            border-radius: 6px; border: 1px solid #aaa;
+            font-size: 17px;
+        }
+        button {
+            width: 100%; padding: 12px;
+            background: #333; color: #fff;
+            font-size: 18px; border: none;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>➕ إضافة عملية مالية</h2>
+
+<div class="box">
+    <select id="type">
+        <option value="دين">دين (زيادة رصيد)</option>
+        <option value="سداد">سداد (تقليل الرصيد)</option>
+    </select>
+
+    <input id="amount" type="number" placeholder="المبلغ">
+
+    <input id="note" placeholder="ملاحظة (اختياري)">
+
+    <button onclick="saveTransaction()">حفظ العملية</button>
+</div>
+
+<script type="module" src="../js/customer_transaction_add.js"></script>
+
+</body>
+</html>
