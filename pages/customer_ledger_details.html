@@ -1,81 +1,55 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>كشف حساب العميل</title>
-
-    <style>
-        body {
-            font-family: Arial;
-            direction: rtl;
-            padding: 15px;
-            background: #f7f7f7;
-        }
-
-        h2 {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .info-box {
-            background: #fff;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            margin-bottom: 15px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-
-        th, td {
-            border: 1px solid #bbb;
-            padding: 10px;
-            text-align: center;
-            background: #fff;
-        }
-
-        tr:nth-child(even) {
-            background: #f0f0f0;
-        }
-
-        .back {
-            margin-top: 20px;
-            padding: 10px;
-            width: 100%;
-            background: #333;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
-        }
-    </style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>كشف حساب العميل</title>
+  <style>
+    body{font-family:Arial;background:#000;color:#fff;margin:0}
+    header{background:#111;padding:12px;text-align:center;border-bottom:3px solid gold;font-size:18px;font-weight:bold}
+    .box{padding:12px}
+    .row{display:flex;gap:8px;margin-bottom:8px}
+    input,select{flex:1;padding:10px;border:2px solid gold;border-radius:8px;font-size:15px}
+    button{padding:10px;background:gold;border:none;border-radius:8px;font-weight:bold;cursor:pointer}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{padding:8px;text-align:center;border-bottom:1px solid #333;background:#111}
+    .pos{color:#ffcc00;font-weight:bold}
+    .neg{color:#2ecc71;font-weight:bold}
+  </style>
 </head>
-
 <body>
 
-<h2>📘 كشف حساب العميل</h2>
+<header id="title">📄 كشف حساب</header>
 
-<div class="info-box" id="customer_info">
-    تحميل بيانات العميل...
-</div>
+<div class="box">
+  <div class="row">
+    <select id="type">
+      <option value="debit">دين (بيع)</option>
+      <option value="credit">سداد</option>
+    </select>
+    <input id="amount" type="number" step="0.01" placeholder="المبلغ"/>
+  </div>
+  <div class="row">
+    <input id="note" placeholder="ملاحظة (اختياري)"/>
+    <button onclick="addTrans()">إضافة حركة</button>
+  </div>
 
-<table id="ledger_table">
-    <tr>
+  <h3>الرصيد الحالي: <span id="balance">0</span></h3>
+
+  <table>
+    <thead>
+      <tr>
         <th>التاريخ</th>
         <th>النوع</th>
         <th>المبلغ</th>
-        <th>الرصيد بعد العملية</th>
         <th>ملاحظة</th>
-    </tr>
-</table>
+      </tr>
+    </thead>
+    <tbody id="transBody"></tbody>
+  </table>
+</div>
 
-<button class="back" onclick="history.back()">رجوع</button>
-
+<script type="module" src="../supabase.js"></script>
 <script type="module" src="../js/customer_ledger_details.js"></script>
-
 </body>
 </html>
