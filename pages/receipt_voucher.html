@@ -54,8 +54,17 @@
 
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase.js"></script> 
-    <script src="receipt_voucher.js"></script>
+    <!-- Supabase connection الصحيح -->
+    <script type="module" src="/smartkey-pro/supabase.js"></script>
+
+    <!-- تحميل سكربت الصفحة الصحيح -->
+    <script>
+      const page = "receipt_voucher";
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = `/smartkey-pro/js/${page}.js`;
+      document.body.appendChild(script);
+    </script>
+
 </body>
 </html>
