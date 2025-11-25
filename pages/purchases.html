@@ -108,8 +108,17 @@
 
 <button onclick="savePurchase()">💾 حفظ المشتريات</button>
 
-<script type="module" src="../supabase.js"></script>
-<script type="module" src="../js/purchases.js"></script>
+<!-- Supabase connection الصحيح -->
+<script type="module" src="/smartkey-pro/supabase.js"></script>
+
+<!-- تحميل سكربت الصفحة الصحيح -->
+<script>
+  const page = "purchases_add";  
+  const script = document.createElement("script");
+  script.type = "module";
+  script.src = `/smartkey-pro/js/${page}.js`;
+  document.body.appendChild(script);
+</script>
 
 </body>
 </html>
