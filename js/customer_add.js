@@ -1,14 +1,34 @@
+// customer_add.js
+
 import { supabase } from "../supabase.js";
 
-window.saveCustomer = async ()=>{
-  const name = document.getElementById("name").value.trim();
-  const phone = document.getElementById("phone").value.trim();
+document.getElementById("saveCustomer").addEventListener("click", saveCustomer);
 
-  if(!name){ alert("اكتب اسم العميل"); return; }
+async function saveCustomer() {
+    const name = document.getElementById("customerName").value.trim();
+    const phone = document.getElementById("customerPhone").value.trim();
 
-  const { error } = await supabase.from("customers").insert([{ name, phone }]);
+    if (!name) {
+        alert("❗ الرجاء إدخال اسم العميل");
+        return;
+    }
 
-  if(error){ console.error(error); alert("فشل الحفظ"); return; }
+    // إدخال العميل إلى جدول customers الصحيح
+    const { data, error } = await supabase
+        .from("customers")
+        .insert([
+            {
+                name: name,
+                phone: phone
+            }
+        ]);
 
-  location.href = "customers.html";
-};
+    if (error) {
+        console.error(error);
+        alert("فشل الحفظ ‼️");
+        return;
+    }
+
+    alert("✔️ تم حفظ العميل بنجاح");
+    window.location.href = "customers.html";
+}
