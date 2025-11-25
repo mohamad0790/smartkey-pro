@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>العملاء | SmartKey Pro</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #000;
+            color: #fff;
+            direction: rtl;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            color: gold;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: gold;
+            color: #000;
+            font-size: 18px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            background: #111;
+            padding: 10px;
+            border-bottom: 1px solid #333;
+            text-align: center;
+            color: #fff;
+        }
+
+        tr:hover {
+            background: #222;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>👥 قائمة العملاء</h2>
+
+<a class="btn" href="customer_add.html">➕ إضافة عميل جديد</a>
+
+<table>
+    <thead>
+        <tr>
+            <th>الاسم</th>
+            <th>الجوال</th>
+            <th>الرصيد</th>
+        </tr>
+    </thead>
+    <tbody id="customers_body"></tbody>
+</table>
+
+<script type="module" src="../supabase.js"></script>
+<script type="module" src="../js/customers.js"></script>
+
+</body>
+</html>
