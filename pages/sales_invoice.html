@@ -8,7 +8,7 @@
     <style>
         body {
             background: #000;
-            color: #fff;
+           	color: #fff;
             font-family: Arial;
             margin: 0;
             padding: 0;
@@ -119,8 +119,17 @@
     <button onclick="saveInvoice()">💾 حفظ الفاتورة</button>
 </div>
 
-<script type="module" src="../supabase.js"></script>
-<script type="module" src="../js/invoice.js"></script>
+<!-- Supabase connection الصحيح -->
+<script type="module" src="/smartkey-pro/supabase.js"></script>
+
+<!-- تحميل سكربت الصفحة الصحيح -->
+<script>
+  const page = "invoice";
+  const script = document.createElement("script");
+  script.type = "module";
+  script.src = `/smartkey-pro/js/${page}.js`;
+  document.body.appendChild(script);
+</script>
 
 </body>
 </html>
