@@ -1,34 +1,25 @@
-// customer_add.js
-
 import { supabase } from "../supabase.js";
 
-document.getElementById("saveCustomer").addEventListener("click", saveCustomer);
-
-async function saveCustomer() {
+// إضافة العميل
+document.getElementById("saveCustomer").addEventListener("click", async () => {
     const name = document.getElementById("customerName").value.trim();
     const phone = document.getElementById("customerPhone").value.trim();
 
-    if (!name) {
-        alert("❗ الرجاء إدخال اسم العميل");
+    if (!name || !phone) {
+        alert("⚠️ الرجاء إدخال الاسم ورقم الجوال");
         return;
     }
 
-    // إدخال العميل إلى جدول customers الصحيح
-    const { data, error } = await supabase
+    const { error } = await supabase
         .from("customers")
-        .insert([
-            {
-                name: name,
-                phone: phone
-            }
-        ]);
+        .insert([{ name, phone }]);
 
     if (error) {
-        console.error(error);
-        alert("فشل الحفظ ‼️");
-        return;
+        alert("❌ فشل الحفظ");
+        console.log(error);
+    } else {
+        alert("✅ تم إضافة العميل بنجاح");
+        document.getElementById("customerName").value = "";
+        document.getElementById("customerPhone").value = "";
     }
-
-    alert("✔️ تم حفظ العميل بنجاح");
-    window.location.href = "customers.html";
-}
+});
