@@ -157,74 +157,16 @@
         </div>
     </div>
 
-    <script type="module" src="../supabase.js"></script>
+    <!-- Supabase connection | المسار الصحيح 100% -->
+    <script type="module" src="/smartkey-pro/supabase.js"></script>
 
-    <script type="module">
-        import { supabase } from "../supabase.js";
-
-        document.addEventListener("DOMContentLoaded", loadProducts);
-        document.getElementById("search").addEventListener("input", (e) => {
-            loadProducts(e.target.value);
-        });
-
-        // تحميل المنتجات
-        async function loadProducts(search = "") {
-
-            let query = supabase.from("products").select("*").order("id", { ascending: false });
-
-            if (search.trim() !== "") {
-                query = query.ilike("name", `%${search}%`);
-            }
-
-            const { data } = await query;
-
-            const table = document.getElementById("productsTableBody");
-            table.innerHTML = "";
-
-            data.forEach(prod => {
-                table.innerHTML += `
-                    <tr>
-                        <td><img src="${prod.image_url || "https://via.placeholder.com/60"}" width="55"></td>
-                        <td>${prod.product_code}</td>
-                        <td>${prod.name}</td>
-                        <td>${prod.buy}</td>
-                        <td>${prod.sell}</td>
-                        <td>${prod.quantity}</td>
-                        <td><button class="btn edit-btn" onclick="viewProduct(${prod.id})">👁</button></td>
-                        <td><button class="btn delete-btn" onclick="deleteProduct(${prod.id})">🗑</button></td>
-                    </tr>
-                `;
-            });
-        }
-
-        // حذف المنتج
-        window.deleteProduct = async function (id) {
-            if (!confirm("هل تريد حذف المنتج؟")) return;
-
-            await supabase.from("products").delete().eq("id", id);
-            loadProducts();
-        };
-
-        // عرض المنتج
-        window.viewProduct = async function (id) {
-            const { data } = await supabase.from("products").select("*").eq("id", id).single();
-
-            document.getElementById("pName").innerText = data.name;
-            document.getElementById("pDetails").innerHTML = `
-                <b>الكود:</b> ${data.product_code}<br>
-                <b>سعر الشراء:</b> ${data.buy}<br>
-                <b>سعر البيع:</b> ${data.sell}<br>
-                <b>الكمية:</b> ${data.quantity}<br>
-            `;
-
-            document.getElementById("pImage").src = data.image_url || "https://via.placeholder.com/150";
-
-            document.getElementById("popup").style.display = "flex";
-        };
-
-        window.closePopup = function () {
-            document.getElementById("popup").style.display = "none";
-        };
+    <!-- تحميل ملف المنتجات تلقائياً -->
+    <script>
+      const page = "products";  
+      const script = document.createElement("script");
+      script.type = "module";
+      script.src = `/smartkey-pro/js/${page}.js`;
+      document.body.appendChild(script);
     </script>
 
 </body>
