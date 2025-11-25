@@ -2,31 +2,122 @@
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>دفتر العملاء</title>
+    <title>دفتر العملاء | SmartKey Pro</title>
+
     <style>
+        body {
+            font-family: Arial;
+            direction: rtl;
+            background: #000;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: gold;
+        }
+
+        .box {
+            background: #111;
+            padding: 15px;
+            border: 2px solid gold;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        select, input {
+            width: 98%;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 17px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            background: gold;
+            color: #000;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
         }
+
         th, td {
-            border: 1px solid #ccc;
             padding: 10px;
+            background: #111;
+            border-bottom: 1px solid #333;
             text-align: center;
+            color: #fff;
         }
-        tr:hover {
-            background: #f0f0f0;
-            cursor: pointer;
+
+        .balance {
+            font-size: 20px;
+            text-align: center;
+            padding: 12px;
+            border: 2px solid gold;
+            background: #111;
+            border-radius: 10px;
         }
     </style>
 </head>
+
 <body>
 
 <h2>📘 دفتر العملاء (الذمم)</h2>
 
-<table id="customers_table"></table>
+<div class="box">
+    <label>اختر العميل:</label>
+    <select id="customer_select"></select>
+</div>
 
-<script type="module" src="customer_ledger.js"></script>
+<div class="balance" id="balance_area">
+    الرصيد: 0 ريال
+</div>
+
+<div class="box">
+    <h3 style="margin-top:0; color:gold;">➕ إضافة معاملة جديدة للعميل</h3>
+
+    <select id="txn_type">
+        <option value="invoice">فاتورة (دين على العميل)</option>
+        <option value="payment">سند قبض (تسديد من العميل)</option>
+        <option value="adjustment">تعديل رصيد</option>
+    </select>
+
+    <input id="amount" type="number" placeholder="المبلغ">
+
+    <input id="note" placeholder="ملاحظة">
+
+    <button onclick="addTransaction()">حفظ المعاملة</button>
+</div>
+
+<table id="transactions_table">
+    <thead>
+        <tr>
+            <th>التاريخ</th>
+            <th>النوع</th>
+            <th>المبلغ</th>
+            <th>ملاحظة</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script type="module" src="../supabase.js"></script>
+<script type="module" src="../js/customer_ledger.js"></script>
 
 </body>
 </html>
