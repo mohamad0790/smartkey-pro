@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>طباعة باركود المنتجات</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+    body {
+        background: #fff;
+        color: #000;
+        font-family: Arial;
+        margin: 20px;
+    }
+
+    h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    #productList {
+        margin-bottom: 20px;
+    }
+
+    .barcode-card {
+        width: 38mm;
+        height: 25mm;
+        border: 1px dashed #999;
+        padding: 4px;
+        text-align: center;
+        font-size: 12px;
+        display: inline-block;
+        margin: 3px;
+    }
+
+    .barcode-card img {
+        width: 100%;
+        height: 18mm;
+    }
+
+    @media print {
+        #controls {
+            display: none;
+        }
+        body {
+            margin: 0;
+        }
+    }
+</style>
+
+<!-- مكتبة الباركود -->
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+
+<script type="module">
+import { supabase } from "../supabase.js";
+
+const productList = document.getElementById("productList");
+const barcodesContainer = document.getElementById("barcodesContainer");
+
+/* ============= تحميل المنتجات ============= */
+async function loadProducts() {
+    const { data } = await supabase
+        .from("products")
+        .select("id, name, product_code")
+        .order("name");
+
+    productList.innerHTML = "";
+
+    data?.forEach(p => {
+        productList.innerHTML += `
+            <option value="${p.id}">
+                ${p.name} — (${p.product_code})
+            </option>
+        `;
+    });
+}
+
+loadProducts();
+
+/* ============= توليد الباركود ============= */
+window.generateBarcodes = async function () {
+    const selected = [...productList.selectedOptions].map(o => o.value);
+
+    if (selected.length === 0) {
+        alert("اختر منتج واحد على الأقل");
+        return;
+    }
+
+    barcodesContainer.innerHTML = "";
+
+    for (let id of selected) {
+        const { data: product } = await supabase
+            .from("products")
+            .select("name, product_code")
+            .eq("id", id)
+            .single();
+
+        for (let i = 0; i < 1; i++) {
+            const div = document.createElement("div");
+            div.className = "barcode-card";
+
+            const canvas = document.createElement("canvas");
+            JsBarcode(canvas, product.product_code, {
+                format: "CODE128",
+                displayValue: true,
+                fontSize: 12,
+                margin: 0
+            });
+
+            div.innerHTML = `
+                <strong>${product.name}</strong><br>
+            `;
+            div.appendChild(canvas);
+            barcodesContainer.appendChild(div);
+        }
+    }
+};
+
+/* ============= طباعة الصفحة ============= */
+window.printPage = function () {
+    window.print();
+};
+</script>
+
+</head>
+
+<body>
+
+<h2>📦 طباعة باركود المنتجات</h2>
+
+<div id="controls">
+
+    <label>اختر المنتجات (يمكن تحديد أكثر من منتج):</label>
+    <select id="productList" multiple size="10" style="width:100%; padding:10px;">
+
+    </select>
+
+    <button onclick="generateBarcodes()" style="width:100%; padding:12px; margin-top:10px; background:black; color:white; font-size:18px; border-radius:10px;">
+        🎯 توليد الباركود
+    </button>
+
+    <button onclick="printPage()" style="width:100%; padding:12px; margin-top:10px; background:gold; color:black; font-size:18px; border-radius:10px;">
+        🖨️ طباعة
+    </button>
+</div>
+
+<hr>
+
+<div id="barcodesContainer"></div>
+
+</body>
+</html>
