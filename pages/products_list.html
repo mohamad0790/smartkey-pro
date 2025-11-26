@@ -16,20 +16,46 @@ body {
 
 h2 {
     color:gold;
+    margin-bottom:15px;
 }
 
 button {
     background:gold;
     color:#000;
-    padding:10px 15px;
+    padding:8px 15px;
     border:none;
     border-radius:8px;
-    font-size:18px;
     cursor:pointer;
+    font-size:16px;
+    font-weight:bold;
+}
+
+table {
+    width:100%;
+    margin-top:20px;
+    border-collapse:collapse;
+}
+
+th, td {
+    border:1px solid gold;
+    padding:10px;
+}
+
+th {
+    background:#222;
+    color:gold;
+}
+
+.action-btn {
+    background:#444;
+    color:#fff;
+    padding:5px 10px;
+    border-radius:6px;
+    margin:2px;
 }
 
 /* Popup */
-#popup {
+#popup, #editPopup {
     display:none;
     position:fixed;
     top:0; left:0; right:0; bottom:0;
@@ -56,18 +82,6 @@ input {
     background:#222;
     color:#fff;
 }
-
-table {
-    width:100%;
-    border-collapse:collapse;
-    margin-top:20px;
-}
-
-th, td {
-    border:1px solid gold;
-    padding:10px;
-}
-th { background:#222; color:gold; }
 </style>
 </head>
 
@@ -85,37 +99,61 @@ th { background:#222; color:gold; }
 <th>شراء</th>
 <th>بيع</th>
 <th>كمية</th>
+<th>إجراءات</th>
 </tr>
 </thead>
 <tbody id="productsTable"></tbody>
 </table>
 
-<!-- Popup -->
+<!-- إضافة صنف -->
 <div id="popup">
     <div class="popup-box">
         <h3 style="color:gold;">إضافة صنف جديد</h3>
 
-        <input id="pCode" placeholder="كود الصنف">
-        <input id="pName" placeholder="اسم الصنف">
-        <input id="pBuy" type="number" placeholder="سعر الشراء">
-        <input id="pSell" type="number" placeholder="سعر البيع">
-        <input id="pQty" type="number" placeholder="الكمية">
+        <input id="addCode" placeholder="كود الصنف">
+        <input id="addName" placeholder="اسم الصنف">
+        <input id="addBuy" type="number" placeholder="سعر الشراء">
+        <input id="addSell" type="number" placeholder="سعر البيع">
+        <input id="addQty" type="number" placeholder="الكمية">
 
         <button onclick="saveProduct()">حفظ</button>
-        <button onclick="closePopup()" style="background:#444; color:#fff; margin-top:5px;">إغلاق</button>
+        <button onclick="closePopup()" style="background:#444; color:#fff;">إغلاق</button>
+    </div>
+</div>
+
+<!-- تعديل صنف -->
+<div id="editPopup">
+    <div class="popup-box">
+        <h3 style="color:gold;">تعديل المنتج</h3>
+
+        <input id="editCode">
+        <input id="editName">
+        <input id="editBuy" type="number">
+        <input id="editSell" type="number">
+        <input id="editQty" type="number">
+
+        <button onclick="updateProduct()">تحديث</button>
+        <button onclick="closeEditPopup()" style="background:#444; color:#fff;">إغلاق</button>
     </div>
 </div>
 
 <script type="module">
 import { supabase } from "../supabase.js";
 
+let editId = null;
+
+// فتح وغلق نوافذ
 function openPopup(){ document.getElementById("popup").style.display="flex"; }
 function closePopup(){ document.getElementById("popup").style.display="none"; }
 
+function openEditPopup(){ document.getElementById("editPopup").style.display="flex"; }
+function closeEditPopup(){ document.getElementById("editPopup").style.display="none"; }
+
+// تحميل المنتجات
 async function loadProducts() {
     const table = document.getElementById("productsTable");
 
-    const { data, error } = await supabase
+    const { data } = await supabase
         .from("products")
         .select("*")
         .order("id", { ascending:false });
@@ -130,37 +168,68 @@ async function loadProducts() {
             <td>${p.buy}</td>
             <td>${p.sell}</td>
             <td>${p.quantity}</td>
+            <td>
+                <button class="action-btn" onclick="editProduct(${p.id}, '${p.product_code}', '${p.name}', ${p.buy}, ${p.sell}, ${p.quantity})">✏ تعديل</button>
+                <button class="action-btn" onclick="deleteProduct(${p.id})" style="background:red;">🗑 حذف</button>
+            </td>
         </tr>`;
     });
 }
 
+// إضافة منتج جديد
 async function saveProduct() {
-    const pCode = document.getElementById("pCode").value.trim();
-    const pName = document.getElementById("pName").value.trim();
-    const pBuy  = document.getElementById("pBuy").value;
-    const pSell = document.getElementById("pSell").value;
-    const pQty  = document.getElementById("pQty").value;
+    const pCode = document.getElementById("addCode").value;
+    const pName = document.getElementById("addName").value;
+    const pBuy = document.getElementById("addBuy").value;
+    const pSell = document.getElementById("addSell").value;
+    const pQty = document.getElementById("addQty").value;
 
-    if (!pCode || !pName) {
-        alert("يجب تعبئة الكود والاسم");
-        return;
-    }
-
-    const { error } = await supabase.from("products").insert({
-        product_code: pCode,
-        name: pName,
-        buy: pBuy,
-        sell: pSell,
-        quantity: pQty
+    await supabase.from("products").insert({
+        product_code:pCode,
+        name:pName,
+        buy:pBuy,
+        sell:pSell,
+        quantity:pQty
     });
 
-    if (error) {
-        alert("حدث خطأ أثناء الحفظ");
-        return;
-    }
-
     closePopup();
-    loadProducts(); // تحديث الجدول
+    loadProducts();
+}
+
+// تجهيز بيانات التعديل
+window.editProduct = function(id, code, name, buy, sell, qty) {
+    editId = id;
+    document.getElementById("editCode").value = code;
+    document.getElementById("editName").value = name;
+    document.getElementById("editBuy").value = buy;
+    document.getElementById("editSell").value = sell;
+    document.getElementById("editQty").value = qty;
+
+    openEditPopup();
+}
+
+// تحديث المنتج
+async function updateProduct() {
+    await supabase.from("products")
+        .update({
+            product_code: document.getElementById("editCode").value,
+            name: document.getElementById("editName").value,
+            buy: document.getElementById("editBuy").value,
+            sell: document.getElementById("editSell").value,
+            quantity: document.getElementById("editQty").value
+        })
+        .eq("id", editId);
+
+    closeEditPopup();
+    loadProducts();
+}
+
+// حذف المنتج
+window.deleteProduct = async function(id) {
+    if (!confirm("هل تريد حذف هذا المنتج؟")) return;
+
+    await supabase.from("products").delete().eq("id", id);
+    loadProducts();
 }
 
 loadProducts();
