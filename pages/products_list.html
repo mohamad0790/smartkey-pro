@@ -1,130 +1,82 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>قائمة المنتجات</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>قائمة المنتجات</title>
 
-    <style>
-        body {
-            background:#111;
-            color:#fff;
-            font-family:Arial;
-            padding:20px;
-        }
-
-        h2 {
-            text-align:center;
-            color:gold;
-        }
-
-        .search-box {
-            width:90%;
-            margin:10px auto;
-        }
-
-        input {
-            width:100%;
-            padding:10px;
-            border-radius:8px;
-            border:1px solid gold;
-            font-size:16px;
-            background:#222;
-            color:#fff;
-        }
-
-        table {
-            width:100%;
-            border-collapse:collapse;
-            margin-top:20px;
-        }
-
-        th, td {
-            border:1px solid #444;
-            padding:8px;
-            text-align:center;
-        }
-
-        th {
-            background:gold;
-            color:#000;
-        }
-
-        button {
-            background:gold;
-            color:#000;
-            padding:5px 10px;
-            border:none;
-            border-radius:6px;
-            cursor:pointer;
-            font-size:14px;
-        }
-    </style>
+<style>
+body {
+    background:#000;
+    color:#fff;
+    font-family:Tajawal, Arial;
+    text-align:center;
+    padding:20px;
+}
+table {
+    width:95%;
+    margin:15px auto;
+    border-collapse:collapse;
+}
+th, td {
+    padding:10px;
+    border:1px solid gold;
+}
+th {
+    background:#222;
+    color:gold;
+}
+</style>
 </head>
-
 <body>
 
-<h2>📦 قائمة المنتجات</h2>
+<h2 style="color:gold;">📦 قائمة المنتجات</h2>
 
-<div class="search-box">
-    <input id="searchInput" placeholder="🔍 بحث باسم أو كود المنتج...">
-</div>
-
-<table>
-    <thead>
-        <tr>
-            <th>الكود</th>
-            <th>الاسم</th>
-            <th>شراء</th>
-            <th>بيع</th>
-            <th>كمية</th>
-        </tr>
-    </thead>
-    <tbody id="productsTable"></tbody>
+<table id="productsTable">
+<thead>
+<tr>
+<th>الكود</th>
+<th>الاسم</th>
+<th>شراء</th>
+<th>بيع</th>
+<th>كمية</th>
+</tr>
+</thead>
+<tbody></tbody>
 </table>
 
 <script type="module">
-    import { supabase } from "../supabase.js";
+import { supabase } from "../supabase.js";
 
-    async function loadProducts() {
-        const { data, error } = await supabase
-            .from("products")
-            .select("*")
-            .order("id", { ascending: false });
+async function loadProducts() {
+    const table = document.querySelector("#productsTable tbody");
 
-        if (error) {
-            console.log(error);
-            return;
-        }
+    const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .order("id", { ascending: false });
 
-        const table = document.getElementById("productsTable");
-        table.innerHTML = "";
-
-        data.forEach(p => {
-            const row = `
-                <tr>
-                    <td>${p.product_code}</td>
-                    <td>${p.name}</td>
-                    <td>${p.buy}</td>
-                    <td>${p.sell}</td>
-                    <td>${p.quantity || 0}</td>
-                </tr>
-            `;
-            table.innerHTML += row;
-        });
+    if (error) {
+        table.innerHTML = "<tr><td colspan='5' style='color:red'>خطأ في تحميل البيانات</td></tr>";
+        return;
     }
 
-    document.getElementById("searchInput").addEventListener("input", function() {
-        const search = this.value.trim();
+    table.innerHTML = "";
 
-        const rows = document.querySelectorAll("#productsTable tr");
-        rows.forEach(row => {
-            const text = row.innerText;
-            row.style.display = text.includes(search) ? "" : "none";
-        });
+    data.forEach(row => {
+        let tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${row.product_code}</td>
+            <td>${row.name}</td>
+            <td>${row.buy}</td>
+            <td>${row.sell}</td>
+            <td>${row.quantity}</td>
+        `;
+        table.appendChild(tr);
     });
+}
 
-    loadProducts();
+loadProducts();
 </script>
 
 </body>
