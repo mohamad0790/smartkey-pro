@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+title>طباعة فاتورة</title>
+<style>
+    body {
+        font-family: Arial;
+        width: 210mm;
+        margin: auto;
+        background: #fff;
+        color: #000;
+    }
+    .invoice-box {
+        padding: 20px;
+        border: 2px solid #000;
+    }
+    h2, h3 {
+        margin: 5px 0;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+    th, td {
+        border: 1px solid #000;
+        padding: 8px;
+        text-align: center;
+    }
+    .no-border td {
+        border: none;
+    }
+    .header {
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    .footer {
+        margin-top: 25px;
+        text-align: center;
+        font-size: 14px;
+    }
+    @media print {
+        body {
+            margin: 0;
+        }
+    }
+</style>
+<script type="module">
+import { supabase } from "../supabase.js";
+
+async function loadInvoice() {
+    const url = new URL(window.location.href);
+    const id = url.searchParams.get("id");
+
+    if (!id) {
+        alert("خطأ: لا يوجد رقم فاتورة");
+        return;
+    }
+
+    // البيانات الأساسية للفاتورة
+    const { data: sale } = await supabase
+        .from("sales")
+        .select("*, customers(name, phone)")
+        .eq("id", id)
+        .single();
+
+    if (!sale) {
+        alert("الفاتورة غير موجودة");
+        return;
+    }
+
+    // تفاصيل الأصناف
+    const { data: items } = await supabase
+        .from("sale_items")
+        .select("*, products(name)")
+        .eq("sale_id", id);
+
+    document.getElementById("invoiceId").textContent = sale.id;
+    document.getElementById("customerName").textContent = sale.customers.name;
+    document.getElementById("customerPhone").textContent = sale.customers.phone || "—";
+
+    document.getElementById("total").textContent = sale.total;
+    document.getElementById("paid").textContent = sale.paid;
+    document.getElementById("remaining").textContent = sale.remaining;
+    document.getElementById("oldBalance").textContent = sale.previous_balance;
+    document.getElementById("newBalance").textContent = sale.new_balance;
+
+    // رسم جدول الأصناف
+    const table = document.getElementById("itemsTable");
+    items.forEach(it => {
+        table.innerHTML += `
+            <tr>
+                <td>${it.products.name}</td>
+                <td>${it.price}</td>
+                <td>${it.qty}</td>
+                <td>${it.total}</td>
+            </tr>
+        `;
+    });
+}
+
+window.onload = loadInvoice;
+</script>
+</head>
+
+<body>
+
+<div class="invoice-box">
+
+<div class="header">
+    <h2>مؤسسة نسخ مميز للمفاتيح</h2>
+    <p>الرياض - حي السليمانية</p>
+    <p>جوال: 0550000000</p>
+</div>
+
+<h3>فاتورة مبيعات رقم: <span id="invoiceId"></span></h3>
+
+<table class="no-border">
+    <tr>
+        <td><strong>اسم العميل:</strong> <span id="customerName"></span></td>
+        <td><strong>رقم العميل:</strong> <span id="customerPhone"></span></td>
+    </tr>
+</table>
+
+<h3>تفاصيل الأصناف</h3>
+<table>
+    <thead>
+        <tr>
+            <th>الصنف</th>
+            <th>السعر</th>
+            <th>الكمية</th>
+            <th>الإجمالي</th>
+        </tr>
+    </thead>
+    <tbody id="itemsTable"></tbody>
+</table>
+
+<h3>الملخص المالي</h3>
+<table>
+<tr><td>إجمالي الفاتورة</td><td id="total"></td></tr>
+<tr><td>المبلغ المدفوع</td><td id="paid"></td></tr>
+<tr><td>المتبقي</td><td id="remaining"></td></tr>
+<tr><td>الرصيد السابق</td><td id="oldBalance"></td></tr>
+<tr><td>الرصيد الجديد</td><td id="newBalance"></td></tr>
+</table>
+
+<div class="footer">
+    <p>شكراً لتعاملكم معنا</p>
+    <p>نسخ مميز للمفاتيح © 2025</p>
+</div>
+
+</div>
+
+<script>
+function printPage() {
+    window.print();
+}
+</script>
+
+<button onclick="printPage()" style="width:100%; padding:15px; background:black; color:white; font-size:20px;">
+🖨️ طباعة الفاتورة
+</button>
+
+</body>
+</html>
