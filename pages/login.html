@@ -1,80 +1,89 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول</title>
+    <title>تسجيل الدخول | SmartKey Pro</title>
 
     <style>
         body {
-            background: #f5f5f5;
-            font-family: Arial;
-            direction: rtl;
-            text-align: center;
-            padding: 20px;
+            background:#000;
+            color:#fff;
+            font-family:Tajawal, Arial;
+            text-align:center;
+            padding:40px;
         }
 
-        .box {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 0 10px #ccc;
-            margin: auto;
-            margin-top: 60px;
-            width: 85%;
-            max-width: 400px;
+        h2 {
+            color:gold;
         }
 
         input {
-            width: 90%;
-            padding: 12px;
-            margin: 10px 0;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            font-size: 17px;
+            width:90%;
+            padding:12px;
+            border-radius:10px;
+            border:1px solid gold;
+            margin:10px auto;
+            font-size:18px;
+            display:block;
+            background:#111;
+            color:#fff;
         }
 
         button {
-            width: 90%;
-            padding: 14px;
-            background: #28a745;
-            color: white;
-            font-size: 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        h1 {
-            margin-bottom: 25px;
+            width:90%;
+            padding:12px;
+            border:none;
+            border-radius:10px;
+            background:gold;
+            color:#000;
+            font-size:20px;
+            font-weight:bold;
+            margin-top:15px;
         }
 
         #msg {
-            margin-top: 12px;
-            font-size: 16px;
-            font-weight: bold;
+            margin-top:15px;
+            color:red;
         }
     </style>
 </head>
-
 <body>
 
-    <div class="box">
-        <h1>🔐 تسجيل الدخول</h1>
+<h2>🔐 تسجيل الدخول</h2>
 
-        <!-- ← هنا التعديل: صار id="user" -->
-        <input id="user" placeholder="معرّف المستخدم (مثل admin)" />
+<input id="email" type="email" placeholder="البريد الإلكتروني">
+<input id="password" type="password" placeholder="كلمة المرور">
 
-        <input id="pin" placeholder="الرمز السري (مثل 1234)" type="password" />
+<button onclick="login()">دخول</button>
 
-        <button onclick="login()">تسجيل الدخول</button>
+<div id="msg"></div>
 
-        <!-- مكان ظهور الرسائل -->
-        <p id="msg"></p>
-    </div>
+<script type="module">
+    import { supabase } from "../js/supabase.js";
 
-    <!-- استدعاء ملف تسجيل الدخول فقط -->
-    <script type="module" src="./login.js"></script>
+    async function login() {
+
+        let email = document.getElementById("email").value.trim();
+        let password = document.getElementById("password").value.trim();
+        let msg = document.getElementById("msg");
+
+        msg.innerText = "";
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+
+        if (error) {
+            msg.innerText = "❌ خطأ في تسجيل الدخول";
+            return;
+        }
+
+        // بعد تسجيل الدخول → إرسال المستخدم للقائمة الرئيسية
+        window.location.href = "../index.html";
+    }
+</script>
 
 </body>
 </html>
