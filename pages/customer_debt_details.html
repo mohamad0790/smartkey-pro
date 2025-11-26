@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>تفاصيل ديون العميل</title>
+    <style>
+        body {
+            font-family: Tajawal, sans-serif;
+            background: #f2f2f2;
+            padding: 15px;
+        }
+
+        .card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px #00000020;
+            margin-bottom: 12px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: green;
+            color: white;
+            border: none;
+            font-size: 17px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>ديون العميل</h2>
+
+    <div id="customerInfo" class="card">تحميل...</div>
+
+    <h3>سجل الدفعات</h3>
+    <div id="paymentsList">تحميل...</div>
+
+    <h3>إضافة دفعة جديدة</h3>
+    <div class="card">
+        <input type="number" id="amount" placeholder="المبلغ" style="width:100%; padding:10px;" />
+        <button onclick="addPayment()">إضافة دفعة</button>
+    </div>
+
+    <script type="module" src="../js/customer_debt_details.js"></script>
+</body>
+</html>
