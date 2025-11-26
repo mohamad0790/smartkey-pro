@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>مرتجعات المبيعات | SmartKey Pro</title>
+
+    <style>
+        body { font-family: sans-serif; direction: rtl; padding: 15px; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input, select, textarea {
+            width: 100%; padding: 10px; margin-top: 5px; border-radius: 6px;
+            border: 1px solid #ccc; font-size: 16px;
+        }
+        button {
+            width: 100%; padding: 12px; background: #000; color: #fff;
+            border: none; border-radius: 6px; margin-top: 20px;
+            font-size: 18px; cursor: pointer;
+        }
+    </style>
+
+    <script type="module">
+        import { supabase } from "../js/supabase.js";
+
+        // تحميل الفواتير
+        const loadInvoices = async () => {
+            const { data } = await supabase.from("sales_invoices").select("*");
+            let sel = document.getElementById("invoice");
+            sel.innerHTML = "<option value=''>اختر الفاتورة</option>";
+            data.forEach(inv => {
+                sel.innerHTML += `<option value="${inv.id}">فاتورة #${inv.id.slice(0, 6)} - ${inv.total_amount}</option>`;
+            });
+        };
+
+        // حفظ المرتجع
+        const saveReturn = async () => {
+            let invoice = document.getElementById("invoice").value;
+            let product = document.getElementById("product").value;
+            let qty = document.getElementById("qty").value;
+            let reason = document.getElementById("reason").value;
+
+            if (!invoice || !product || !qty) {
+                alert("يرجى تعبئة جميع الحقول");
+                return;
+            }
+
+            const { error } = await supabase.from("sales_returns").insert({
+                sale_id: invoice,
+                product_id: product,
+                quantity: qty,
+                reason: reason
+            });
+
+            if (error) {
+                alert("خطأ: " + error.message);
+            } else {
+                alert("تم تسجيل المرتجع بنجاح ✔");
+                location.reload();
+            }
+        };
+
+        window.onload = loadInvoices;
+    </script>
+</head>
+
+<body>
+    <h2>📦 تسجيل مرتجع</h2>
+
+    <label>الفاتورة</label>
+    <select id="invoice"></select>
+
+    <label>رقم الصنف</label>
+    <input id="product" placeholder="أدخل رقم الصنف">
+
+    <label>الكمية المرتجعة</label>
+    <input type="number" id="qty" placeholder="الكمية">
+
+    <label>السبب</label>
+    <textarea id="reason" rows="4" placeholder="سبب الإرجاع (اختياري)"></textarea>
+
+    <button onclick="saveReturn()">حفظ المرتجع</button>
+</body>
+</html>
