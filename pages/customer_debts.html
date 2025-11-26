@@ -1,90 +1,62 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ديون العملاء | SmartKey Pro</title>
+
 <style>
-    body { background:#f0f2f5; font-family:Tahoma; padding:20px; }
-    .card { background:#fff; padding:20px; border-radius:12px; box-shadow:0 2px 10px #ccc; max-width:700px; margin:auto; }
-    input, select { width:100%; padding:12px; margin-top:6px; border-radius:6px; border:1px solid #bbb; }
-    button { padding:12px; width:100%; margin-top:10px; background:#0a7cff; border:none; color:#fff; border-radius:8px; font-size:18px; cursor:pointer; }
+    body { direction: rtl; font-family: sans-serif; padding: 15px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: center; }
+    th { background: #000; color: #fff; }
 </style>
-</head>
-
-<body>
-<div class="card">
-
-<h2>📘 ديون العملاء</h2>
-
-<label>اختر العميل:</label>
-<select id="customerList"></select>
-
-<label>المبلغ:</label>
-<input id="amount" type="number" placeholder="أدخل المبلغ">
-
-<label>النوع:</label>
-<select id="type">
-  <option value="debt">إضافة دين</option>
-  <option value="payment">سداد</option>
-</select>
-
-<button onclick="saveDebt()">حفظ العملية</button>
-
-<h3>📄 سجل العمليات</h3>
-<div id="log"></div>
-
-</div>
 
 <script type="module">
 import { supabase } from "../js/supabase.js";
 
-window.onload = loadCustomers;
-
-async function loadCustomers() {
-    const { data } = await supabase.from("customers").select("*");
-
-    const select = document.getElementById("customerList");
-    data.forEach(c => {
-        select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-    });
-
-    loadLog();
-}
-
-async function saveDebt() {
-    const customerId = document.getElementById("customerList").value;
-    const amount = document.getElementById("amount").value;
-    const type = document.getElementById("type").value;
-
-    if (!amount) return alert("أدخل المبلغ");
-
-    await supabase.from("debts").insert({
-        customer_id: customerId,
-        amount: amount,
-        type: type
-    });
-
-    alert("تم الحفظ بنجاح");
-    loadLog();
-}
-
-async function loadLog() {
-    const customerId = document.getElementById("customerList").value;
-
+const loadDebts = async () => {
     const { data } = await supabase
-        .from("debts")
-        .select("*")
-        .eq("customer_id", customerId)
-        .order("id", { ascending: false });
+        .from("sales_invoices")
+        .select("*, customers(name, phone)")
+        .gte("remaining_amount", 1);
 
-    let html = "";
-    data.forEach(d => {
-        html += `<p>• ${d.type === "debt" ? "دين" : "سداد"} — ${d.amount} ريال</p>`;
+    let tbody = document.getElementById("rows");
+    tbody.innerHTML = "";
+
+    data.forEach(inv => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${inv.customers?.name || "-"}</td>
+                <td>${inv.customers?.phone || "-"}</td>
+                <td>${inv.total_amount}</td>
+                <td>${inv.paid_amount}</td>
+                <td style="color:red;font-weight:bold">${inv.remaining_amount}</td>
+            </tr>
+        `;
     });
+};
 
-    document.getElementById("log").innerHTML = html;
-}
+window.onload = loadDebts;
 </script>
+
+</head>
+
+<body>
+<h2>💰 ديون العملاء</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>العميل</th>
+            <th>رقم الجوال</th>
+            <th>إجمالي الفاتورة</th>
+            <th>المدفوع</th>
+            <th>المتبقي</th>
+        </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+</table>
 
 </body>
 </html>
