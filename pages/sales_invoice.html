@@ -67,28 +67,54 @@
             cursor: pointer;
             border: none;
         }
+
+        /* مكان الكاميرا */
+        #cameraBox {
+            display: none;
+            background: #111;
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 10px;
+            border: 2px solid gold;
+        }
+        video {
+            width: 100%;
+        }
     </style>
+
+    <!-- مكتبة ماسح الباركود -->
+    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@latest"></script>
 </head>
 
 <body>
 
 <header>🧾 إنشاء فاتورة جديدة</header>
 
+<!-- العملاء -->
 <div class="box">
     <label>👤 اختر العميل</label>
     <select id="customerSelect"></select>
-    <button onclick="addNewCustomer()">➕ إضافة عميل جديد</button>
 </div>
 
+<!-- البحث -->
 <div class="box">
-    <label>🔎 بحث الصنف (باركود / كود / اسم)</label>
-    <input id="barcodeInput" placeholder="ابحث بالباركود">
-    <input id="productNameInput" placeholder="ابحث بالاسم">
+    <label>🔎 بحث الصنف (باركود / اسم / كود)</label>
+    <input id="barcodeInput" placeholder="اكتب أو امسح باركود">
 
+    <button onclick="startScan()">📷 تشغيل ماسح الباركود</button>
+
+    <div id="cameraBox">
+        <video id="video" playsinline></video>
+        <button onclick="stopScan()">❌ إيقاف الكاميرا</button>
+    </div>
+
+    <input id="productNameInput" placeholder="بحث بالاسم">
     <input type="number" id="productQty" value="1" placeholder="الكمية">
+
     <button onclick="addItemToInvoice()">➕ إضافة الصنف للفاتورة</button>
 </div>
 
+<!-- جدول الأصناف -->
 <div class="box">
     <table>
         <thead>
@@ -104,11 +130,13 @@
     </table>
 </div>
 
+<!-- الحساب -->
 <div class="box">
-    <label><input type="checkbox" id="taxCheck"> تطبيق ضريبة 15%</label>
+    <p>الإجمالي: <span id="totalNoTax">0</span> ريال</p>
 
-    <p>الإجمالي بدون ضريبة: <span id="totalNoTax">0</span> ريال</p>
-    <p>الضريبة: <span id="taxAmount">0</span> ريال</p>
+    <label>الخصم</label>
+    <input type="number" id="discountInput" value="0">
+
     <h3>الإجمالي النهائي: <span id="finalTotal">0</span> ريال</h3>
 
     <label>المبلغ المدفوع</label>
