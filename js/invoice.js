@@ -1,214 +1,197 @@
-// ======================
-// invoice.js – النسخة النهائية
-// ======================
-
 import { supabase } from "../supabase.js";
 
-let customers = [];
-let products = [];
-let invoiceItems = [];
-
-// عناصر HTML
+/* ----------------------------
+   عناصر HTML
+---------------------------- */
 const customerSelect = document.getElementById("customerSelect");
-const barcodeInput = document.getElementById("barcodeInput");
-const nameInput = document.getElementById("productNameInput");
-const qtyInput = document.getElementById("productQty");
 const invoiceTableBody = document.getElementById("invoiceTableBody");
+const barcodeInput = document.getElementById("barcodeInput");
+const productNameInput = document.getElementById("productNameInput");
+const productQty = document.getElementById("productQty");
+const paidAmount = document.getElementById("paidAmount");
 
-const taxCheck = document.getElementById("taxCheck");
-const totalNoTaxEl = document.getElementById("totalNoTax");
-const taxAmountEl = document.getElementById("taxAmount");
-const finalTotalEl = document.getElementById("finalTotal");
-const paidAmountEl = document.getElementById("paidAmount");
-const remainingAmountEl = document.getElementById("remainingAmount");
+const totalNoTax = document.getElementById("totalNoTax");
+const finalTotal = document.getElementById("finalTotal");
+const remainingAmount = document.getElementById("remainingAmount");
 
-// ==============================
-// 1️⃣ تحميل العملاء
-// ==============================
+let invoiceItems = []; // السلة
+
+/* --------------------------------
+    تحميل العملاء
+-------------------------------- */
 async function loadCustomers() {
-    const { data, error } = await supabase
-        .from("customers")
-        .select("*")
-        .order("name");
+    const { data, error } = await supabase.from("customers").select("*").order("name");
 
-    if (error) return console.error(error);
+    customerSelect.innerHTML = "";
 
-    customers = data;
-
-    customerSelect.innerHTML = `<option value="">اختر عميل...</option>`;
-
-    data.forEach(c => {
-        customerSelect.innerHTML += `
-            <option value="${c.id}">${c.name} — ${c.phone_number || ''}</option>
-        `;
-    });
+    if (data && data.length > 0) {
+        data.forEach(c => {
+            customerSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+        });
+    }
 }
 
-// فتح صفحة إضافة عميل جديد
-window.addNewCustomer = function () {
-    window.location.href = "customer_add.html";
-};
+loadCustomers();
 
-// ==============================
-// 2️⃣ تحميل المنتجات
-// ==============================
-async function loadProducts() {
+/* --------------------------------
+    دالة البحث عن المنتج
+-------------------------------- */
+async function findProduct(keyword) {
     const { data, error } = await supabase
         .from("products")
-        .select("*");
+        .select("*")
+        .or(`barcode.eq.${keyword},product_code.eq.${keyword},name.ilike.%${keyword}%`)
+        .limit(1);
 
-    if (error) return console.error(error);
-
-    products = data;
+    if (data && data.length > 0) return data[0];
+    return null;
 }
 
-// ==============================
-// 3️⃣ إضافة صنف للفاتورة
-// ==============================
-window.addItemToInvoice = function () {
-    const code = barcodeInput.value.trim();
-    const nameSearch = nameInput.value.trim();
-    const qty = Number(qtyInput.value);
+/* --------------------------------
+    إضافة منتج للفاتورة
+-------------------------------- */
+window.addItemToInvoice = async function () {
+    const keyword = barcodeInput.value.trim() || productNameInput.value.trim();
+    const qty = Number(productQty.value);
 
+    if (!keyword) return alert("اكتب الباركود أو اسم المنتج");
     if (qty <= 0) return alert("الكمية غير صحيحة");
 
-    let product = null;
+    const product = await findProduct(keyword);
 
-    if (code) {
-        product = products.find(p => p.product_code == code);
+    if (!product) return alert("المنتج غير موجود!");
+
+    // إضافة للسلة
+    const exist = invoiceItems.find(i => i.id === product.id);
+    if (exist) {
+        exist.qty += qty;
+    } else {
+        invoiceItems.push({
+            id: product.id,
+            name: product.name,
+            price: Number(product.sell),
+            qty: qty
+        });
     }
-    if (!product && nameSearch) {
-        product = products.find(p => p.name.includes(nameSearch));
-    }
 
-    if (!product) return alert("الصنف غير موجود");
-
-    invoiceItems.push({
-        id: product.id,
-        name: product.name,
-        price: product.sell,
-        qty: qty,
-        total: qty * product.sell
-    });
-
-    updateTable();
-    calculateTotals();
+    renderInvoice();
+    barcodeInput.value = "";
+    productNameInput.value = "";
 };
 
-// ==============================
-// 4️⃣ تحديث جدول الفاتورة
-// ==============================
-function updateTable() {
+/* --------------------------------
+    رسم جدول الفاتورة
+-------------------------------- */
+function renderInvoice() {
     invoiceTableBody.innerHTML = "";
 
+    let total = 0;
+
     invoiceItems.forEach((item, index) => {
+        const rowTotal = item.qty * item.price;
+        total += rowTotal;
+
         invoiceTableBody.innerHTML += `
             <tr>
                 <td>${item.name}</td>
                 <td>${item.price}</td>
                 <td>${item.qty}</td>
-                <td>${item.total}</td>
-                <td>
-                    <button class="delete-btn" onclick="removeItem(${index})">حذف</button>
-                </td>
+                <td>${rowTotal}</td>
+                <td><button class="delete-btn" onclick="deleteItem(${index})">حذف</button></td>
             </tr>
         `;
     });
+
+    totalNoTax.textContent = total;
+    finalTotal.textContent = total;
+
+    const paid = Number(paidAmount.value) || 0;
+    remainingAmount.textContent = finalTotal.textContent - paid;
 }
 
-// حذف عنصر
-window.removeItem = function (index) {
+/* --------------------------------
+    حذف صنف من الفاتورة
+-------------------------------- */
+window.deleteItem = function (index) {
     invoiceItems.splice(index, 1);
-    updateTable();
-    calculateTotals();
+    renderInvoice();
 };
 
-// ==============================
-// 5️⃣ حساب الإجماليات
-// ==============================
-function calculateTotals() {
-    const total = invoiceItems.reduce((sum, item) => sum + item.total, 0);
+/* --------------------------------
+    تحديث المتبقي عند إدخال مبلغ مدفوع
+-------------------------------- */
+paidAmount.addEventListener("input", renderInvoice);
 
-    totalNoTaxEl.textContent = total;
+/* --------------------------------
+    جلب رصيد العميل السابق
+-------------------------------- */
+async function getCustomerBalance(customerId) {
+    const { data, error } = await supabase
+        .from("customers")
+        .select("balance")
+        .eq("id", customerId)
+        .single();
 
-    let tax = 0;
-    if (taxCheck.checked) tax = total * 0.15;
-
-    taxAmountEl.textContent = tax.toFixed(2);
-
-    const final = total + tax;
-    finalTotalEl.textContent = final.toFixed(2);
-
-    const paid = Number(paidAmountEl.value) || 0;
-    const remaining = final - paid;
-
-    remainingAmountEl.textContent = remaining.toFixed(2);
+    return data ? Number(data.balance) : 0;
 }
 
-paidAmountEl.addEventListener("input", calculateTotals);
-taxCheck.addEventListener("change", calculateTotals);
-
-// ==============================
-// 6️⃣ حفظ الفاتورة بالكامل
-// ==============================
+/* --------------------------------
+    حفظ الفاتورة
+-------------------------------- */
 window.saveInvoice = async function () {
-    if (!customerSelect.value) return alert("اختر العميل");
-    if (invoiceItems.length === 0) return alert("أضف أصناف للفاتورة");
+    if (invoiceItems.length === 0) return alert("الفاتورة فارغة!");
 
-    const total_amount = Number(finalTotalEl.textContent);
-    const paid_amount = Number(paidAmountEl.value) || 0;
-    const remaining_amount = total_amount - paid_amount;
+    const customerId = customerSelect.value;
+    const total = Number(finalTotal.textContent);
+    const paid = Number(paidAmount.value) || 0;
+    const remaining = total - paid;
 
-    // --- 1) حفظ الفاتورة الرئيسية ---
-    const { data: invoiceData, error: invoiceError } = await supabase
-        .from("sales_invoices")
+    // استخراج رصيد العميل السابق:
+    const oldBalance = await getCustomerBalance(customerId);
+    const newBalance = oldBalance + remaining;
+
+    // 1) حفظ الفاتورة في جدول sales
+    const { data: saleData, error: saleError } = await supabase
+        .from("sales")
         .insert({
-            customer_id: customerSelect.value,
-            total_amount,
-            paid_amount,
-            remaining_amount,
-            seller_id: "owner",
+            customer_id: customerId,
+            total: total,
+            paid: paid,
+            remaining: remaining,
+            previous_balance: oldBalance,
+            new_balance: newBalance
         })
         .select()
         .single();
 
-    if (invoiceError) return alert("خطأ في حفظ الفاتورة");
+    if (saleError) return alert("خطأ في حفظ الفاتورة");
 
-    const invoiceId = invoiceData.id;
+    const saleId = saleData.id;
 
-    // --- 2) حفظ تفاصيل الفاتورة ---
-    for (const item of invoiceItems) {
+    // 2) حفظ تفاصيل الأصناف في sale_items
+    for (let item of invoiceItems) {
         await supabase.from("sale_items").insert({
-            sale_id: invoiceId,
+            sale_id: saleId,
             product_id: item.id,
-            quantity: item.qty,
-            price: item.price
+            qty: item.qty,
+            price: item.price,
+            total: item.qty * item.price
         });
 
-        // --- 3) خصم الكمية من المخزون ---
-        const product = products.find(p => p.id == item.id);
-        const newQty = Number(product.quantity) - item.qty;
-
-        await supabase
-            .from("products")
-            .update({ quantity: newQty })
-            .eq("id", item.id);
+        // 3) تنزيل الكمية من المخزون
+        await supabase.rpc("decrease_stock", {
+            p_id: item.id,
+            p_qty: item.qty
+        });
     }
 
-    // --- 4) تحديث رصيد العميل ---
-    await supabase.from("customer_transactions").insert({
-        customer_id: customerSelect.value,
-        amount: remaining_amount,
-        balance_after: remaining_amount,
-        note: "فاتورة مبيعات"
-    });
+    // 4) تحديث رصيد العميل
+    await supabase
+        .from("customers")
+        .update({ balance: newBalance })
+        .eq("id", customerId);
 
-    alert("تم حفظ الفاتورة بنجاح");
-    window.location.reload();
+    alert("تم حفظ الفاتورة بنجاح!");
+    invoiceItems = [];
+    renderInvoice();
 };
-
-// ==============================
-// تشغيل عند فتح الصفحة
-// ==============================
-loadCustomers();
-loadProducts();
