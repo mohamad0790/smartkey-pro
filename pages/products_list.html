@@ -89,7 +89,8 @@ input {
 
 <h2>📦 قائمة المنتجات</h2>
 
-<button onclick="openPopup()">➕ إضافة صنف</button>
+<button onclick="openPopup()">➕ إضافة من هنا</button>
+<button onclick="goToAddPage()" style="background:#444;color:#fff;">🔗 صفحة الإضافة</button>
 
 <table>
 <thead>
@@ -142,8 +143,12 @@ import { supabase } from "../supabase.js";
 
 let editId = null;
 
-/* --------- ربط الدوال بالـ window عشان تشتغل ---------- */
+/* -------- الانتقال لصفحة الإضافة -------- */
+window.goToAddPage = function () {
+    window.location.href = "add_product.html";
+};
 
+/* --------- فتح وإغلاق النوافذ ---------- */
 window.openPopup = function () {
     document.getElementById("popup").style.display = "flex";
 }
@@ -157,7 +162,6 @@ window.closeEditPopup = function () {
 }
 
 /* -------- تحميل المنتجات -------- */
-
 async function loadProducts() {
     const table = document.getElementById("productsTable");
 
@@ -174,15 +178,18 @@ async function loadProducts() {
     table.innerHTML = "";
 
     data.forEach(p => {
+        const safeName = (p.name || "").replace(/'/g, "&#39;");
+        const safeCode = (p.product_code || "").replace(/'/g, "&#39;");
+
         table.innerHTML += `
         <tr>
-            <td>${p.product_code}</td>
-            <td>${p.name}</td>
+            <td>${safeCode}</td>
+            <td>${safeName}</td>
             <td>${p.buy}</td>
             <td>${p.sell}</td>
             <td>${p.quantity}</td>
             <td>
-                <button class="action-btn" onclick="editProduct(${p.id}, '${p.product_code}', '${p.name}', ${p.buy}, ${p.sell}, ${p.quantity})">✏ تعديل</button>
+                <button class="action-btn" onclick="editProduct(${p.id}, '${safeCode}', '${safeName}', ${p.buy}, ${p.sell}, ${p.quantity})">✏ تعديل</button>
                 <button class="action-btn" onclick="deleteProduct(${p.id})" style="background:red;">🗑 حذف</button>
             </td>
         </tr>`;
@@ -190,7 +197,6 @@ async function loadProducts() {
 }
 
 /* -------- إضافة منتج -------- */
-
 window.saveProduct = async function () {
     const pCode = document.getElementById("addCode").value;
     const pName = document.getElementById("addName").value;
@@ -211,7 +217,6 @@ window.saveProduct = async function () {
 }
 
 /* -------- تجهيز التعديل -------- */
-
 window.editProduct = function (id, code, name, buy, sell, qty) {
     editId = id;
 
@@ -225,7 +230,6 @@ window.editProduct = function (id, code, name, buy, sell, qty) {
 }
 
 /* -------- تحديث المنتج -------- */
-
 window.updateProduct = async function () {
     await supabase.from("products")
         .update({
@@ -242,7 +246,6 @@ window.updateProduct = async function () {
 }
 
 /* -------- حذف المنتج -------- */
-
 window.deleteProduct = async function (id) {
     if (!confirm("هل تريد حذف هذا المنتج؟")) return;
 
