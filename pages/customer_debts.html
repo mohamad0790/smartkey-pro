@@ -1,62 +1,60 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ديون العملاء | SmartKey Pro</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ديون العملاء | SmartKey Pro</title>
 
-<style>
-    body { direction: rtl; font-family: sans-serif; padding: 15px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: center; }
-    th { background: #000; color: #fff; }
-</style>
+    <style>
+        body {
+            font-family: "Tajawal", sans-serif;
+            margin: 0;
+            padding: 15px;
+            background: #f7f7f7;
+        }
 
-<script type="module">
-import { supabase } from "../js/supabase.js";
+        h1 {
+            text-align: center;
+            color: #333;
+        }
 
-const loadDebts = async () => {
-    const { data } = await supabase
-        .from("sales_invoices")
-        .select("*, customers(name, phone)")
-        .gte("remaining_amount", 1);
+        .customer-card {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px #00000020;
+        }
 
-    let tbody = document.getElementById("rows");
-    tbody.innerHTML = "";
+        .title {
+            font-size: 20px;
+            font-weight: bold;
+        }
 
-    data.forEach(inv => {
-        tbody.innerHTML += `
-            <tr>
-                <td>${inv.customers?.name || "-"}</td>
-                <td>${inv.customers?.phone || "-"}</td>
-                <td>${inv.total_amount}</td>
-                <td>${inv.paid_amount}</td>
-                <td style="color:red;font-weight:bold">${inv.remaining_amount}</td>
-            </tr>
-        `;
-    });
-};
+        .amount {
+            color: #d9534f;
+            font-size: 18px;
+            margin-top: 5px;
+        }
 
-window.onload = loadDebts;
-</script>
-
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #007bff;
+            border: none;
+            color: white;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-size: 16px;
+        }
+    </style>
 </head>
 
 <body>
-<h2>💰 ديون العملاء</h2>
+    <h1>ديون العملاء</h1>
 
-<table>
-    <thead>
-        <tr>
-            <th>العميل</th>
-            <th>رقم الجوال</th>
-            <th>إجمالي الفاتورة</th>
-            <th>المدفوع</th>
-            <th>المتبقي</th>
-        </tr>
-    </thead>
-    <tbody id="rows"></tbody>
-</table>
+    <div id="debtsList">تحميل...</div>
 
+    <script type="module" src="../js/customer_debts.js"></script>
 </body>
 </html>
