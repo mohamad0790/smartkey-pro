@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سداد فاتورة | SmartKey Pro</title>
+
+<style>
+    body { direction: rtl; padding: 15px; font-family: sans-serif; }
+    label { margin-top: 10px; display: block; font-weight: bold; }
+    input, select {
+        width: 100%; padding: 10px; border-radius: 6px;
+        border: 1px solid #ccc; margin-top: 5px;
+    }
+    button {
+        padding: 12px; width: 100%;
+        background:#000; color:#fff; border:none;
+        margin-top: 20px; border-radius: 6px;
+        font-size: 18px;
+    }
+</style>
+
+<script type="module">
+import { supabase } from "../js/supabase.js";
+
+const loadInvoices = async () => {
+    const { data } = await supabase
+        .from("sales_invoices")
+        .select("*")
+        .gte("remaining_amount", 1);
+
+    let sel = document.getElementById("invoice");
+    sel.innerHTML = "<option value=''>اختر فاتورة</option>";
+
+    data.forEach(inv => {
+        sel.innerHTML += `
+            <option value="${inv.id}">
+                فاتورة #${inv.id.slice(0,6)} — المتبقي ${inv.remaining_amount}
+            </option>`;
+    });
+};
+
+const savePayment = async () => {
+    let invoice = document.getElementById("invoice").value;
+    let amount = document.getElementById("amount").value;
+
+    if (!invoice || !amount) return alert("املأ كل الحقول");
+
+    await supabase.from("sales_payments").insert({
+        invoice_id: invoice,
+        amount: amount
+    });
+
+    // تحديث المتبقي
+    await supabase.rpc("update_remaining_after_payment", {
+        invoice_id_input: invoice,
+        paid_input: amount
+    });
+
+    alert("تم تسجيل الدفعة ✔");
+    location.reload();
+};
+
+window.onload = loadInvoices;
+</script>
+
+</head>
+<body>
+
+<h2>💵 تسجيل دفعة للعميل</h2>
+
+<label>رقم الفاتورة</label>
+<select id="invoice"></select>
+
+<label>المبلغ المدفوع</label>
+<input id="amount" type="number" placeholder="مثال: 50">
+
+<button onclick="savePayment()">حفظ الدفعة</button>
+
+</body>
+</html>
