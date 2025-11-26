@@ -30,6 +30,17 @@ button {
     font-weight:bold;
 }
 
+input[type="search"] {
+    width:90%;
+    padding:10px;
+    margin-top:15px;
+    border-radius:8px;
+    border:1px solid gold;
+    background:#222;
+    color:#fff;
+    font-size:16px;
+}
+
 table {
     width:100%;
     margin-top:20px;
@@ -82,6 +93,14 @@ input {
     background:#222;
     color:#fff;
 }
+
+img.product-image {
+    width:70px;
+    height:70px;
+    border-radius:6px;
+    object-fit:cover;
+    border:2px solid #555;
+}
 </style>
 </head>
 
@@ -92,9 +111,12 @@ input {
 <button onclick="openPopup()">➕ إضافة من هنا</button>
 <button onclick="goToAddPage()" style="background:#444;color:#fff;">🔗 صفحة الإضافة</button>
 
+<input id="searchBox" type="search" placeholder="ابحث عن منتج…" oninput="searchProducts()">
+
 <table>
 <thead>
 <tr>
+<th>الصورة</th>
 <th>الكود</th>
 <th>الاسم</th>
 <th>شراء</th>
@@ -117,8 +139,11 @@ input {
         <input id="addSell" type="number" placeholder="سعر البيع">
         <input id="addQty" type="number" placeholder="الكمية">
 
+        <label style="color:gold;">📸 صورة المنتج</label>
+        <input id="addImage" type="file" accept="image/*" capture="environment">
+
         <button onclick="saveProduct()">حفظ</button>
-        <button onclick="closePopup()" style="background:#444; color:#fff;">إغلاق</button>
+        <button onclick="closePopup()" style="background:#444;color:#fff;">إغلاق</button>
     </div>
 </div>
 
@@ -133,68 +158,98 @@ input {
         <input id="editSell" type="number">
         <input id="editQty" type="number">
 
+        <label style="color:gold;">📸 صورة جديدة (اختياري)</label>
+        <input id="editImage" type="file" accept="image/*" capture="environment">
+
         <button onclick="updateProduct()">تحديث</button>
-        <button onclick="closeEditPopup()" style="background:#444; color:#fff;">إغلاق</button>
+        <button onclick="closeEditPopup()" style="background:#444;color:#fff;">إغلاق</button>
     </div>
 </div>
 
 <script type="module">
 import { supabase } from "../supabase.js";
 
+let allProducts = [];
 let editId = null;
+let oldImageUrl = null;
 
 /* -------- الانتقال لصفحة الإضافة -------- */
 window.goToAddPage = function () {
     window.location.href = "add_product.html";
 };
 
-/* --------- فتح وإغلاق النوافذ ---------- */
-window.openPopup = function () {
-    document.getElementById("popup").style.display = "flex";
-}
+/* -------- نوافذ -------- */
+window.openPopup = () => document.getElementById("popup").style.display = "flex";
+window.closePopup = () => document.getElementById("popup").style.display = "none";
+window.closeEditPopup = () => document.getElementById("editPopup").style.display = "none";
 
-window.closePopup = function () {
-    document.getElementById("popup").style.display = "none";
-}
+/* -------- رفع الصورة -------- */
+async function uploadImage(file) {
+    if (!file) return null;
 
-window.closeEditPopup = function () {
-    document.getElementById("editPopup").style.display = "none";
+    const fileName = `product_${Date.now()}.jpg`;
+
+    const { error } = await supabase.storage
+        .from("images")
+        .upload(fileName, file);
+
+    if (error) {
+        alert("❌ خطأ في رفع الصورة");
+        return null;
+    }
+
+    return supabase.storage.from("images").getPublicUrl(fileName).data.publicUrl;
 }
 
 /* -------- تحميل المنتجات -------- */
 async function loadProducts() {
-    const table = document.getElementById("productsTable");
-
     const { data, error } = await supabase
         .from("products")
         .select("*")
         .order("id", { ascending:false });
 
     if (error) {
-        table.innerHTML = "<tr><td colspan='6'>خطأ في تحميل البيانات</td></tr>";
+        alert("خطأ في تحميل المنتجات");
         return;
     }
 
+    allProducts = data;
+    displayProducts(allProducts);
+}
+
+/* -------- عرض المنتجات -------- */
+function displayProducts(list) {
+    const table = document.getElementById("productsTable");
     table.innerHTML = "";
 
-    data.forEach(p => {
-        const safeName = (p.name || "").replace(/'/g, "&#39;");
-        const safeCode = (p.product_code || "").replace(/'/g, "&#39;");
-
+    list.forEach(p => {
         table.innerHTML += `
         <tr>
-            <td>${safeCode}</td>
-            <td>${safeName}</td>
+            <td>${p.image_url ? `<img src="${p.image_url}" class="product-image">` : "—"}</td>
+            <td>${p.product_code}</td>
+            <td>${p.name}</td>
             <td>${p.buy}</td>
             <td>${p.sell}</td>
             <td>${p.quantity}</td>
             <td>
-                <button class="action-btn" onclick="editProduct(${p.id}, '${safeCode}', '${safeName}', ${p.buy}, ${p.sell}, ${p.quantity})">✏ تعديل</button>
+                <button class="action-btn" onclick="editProduct(${p.id})">✏ تعديل</button>
                 <button class="action-btn" onclick="deleteProduct(${p.id})" style="background:red;">🗑 حذف</button>
             </td>
         </tr>`;
     });
 }
+
+/* -------- البحث -------- */
+window.searchProducts = function () {
+    const text = document.getElementById("searchBox").value.trim();
+
+    const filtered = allProducts.filter(p =>
+        (p.name + "").includes(text) ||
+        (p.product_code + "").includes(text)
+    );
+
+    displayProducts(filtered);
+};
 
 /* -------- إضافة منتج -------- */
 window.saveProduct = async function () {
@@ -204,56 +259,73 @@ window.saveProduct = async function () {
     const pSell = document.getElementById("addSell").value;
     const pQty  = document.getElementById("addQty").value;
 
+    const imageFile = document.getElementById("addImage").files[0];
+    const imageUrl = await uploadImage(imageFile);
+
     await supabase.from("products").insert({
         product_code: pCode,
         name: pName,
         buy: pBuy,
         sell: pSell,
-        quantity: pQty
+        quantity: pQty,
+        image_url: imageUrl
     });
 
     closePopup();
     loadProducts();
-}
+};
 
 /* -------- تجهيز التعديل -------- */
-window.editProduct = function (id, code, name, buy, sell, qty) {
-    editId = id;
+window.editProduct = function (id) {
+    const p = allProducts.find(x => x.id === id);
+    if (!p) return;
 
-    document.getElementById("editCode").value = code;
-    document.getElementById("editName").value = name;
-    document.getElementById("editBuy").value  = buy;
-    document.getElementById("editSell").value = sell;
-    document.getElementById("editQty").value  = qty;
+    editId = id;
+    oldImageUrl = p.image_url;
+
+    document.getElementById("editCode").value = p.product_code;
+    document.getElementById("editName").value = p.name;
+    document.getElementById("editBuy").value = p.buy;
+    document.getElementById("editSell").value = p.sell;
+    document.getElementById("editQty").value = p.quantity;
 
     document.getElementById("editPopup").style.display = "flex";
-}
+};
 
 /* -------- تحديث المنتج -------- */
 window.updateProduct = async function () {
+    const newImageFile = document.getElementById("editImage").files[0];
+
+    let finalImageUrl = oldImageUrl;
+
+    if (newImageFile) {
+        finalImageUrl = await uploadImage(newImageFile);
+    }
+
     await supabase.from("products")
         .update({
             product_code: document.getElementById("editCode").value,
             name: document.getElementById("editName").value,
             buy: document.getElementById("editBuy").value,
             sell: document.getElementById("editSell").value,
-            quantity: document.getElementById("editQty").value
+            quantity: document.getElementById("editQty").value,
+            image_url: finalImageUrl
         })
         .eq("id", editId);
 
     closeEditPopup();
     loadProducts();
-}
+};
 
-/* -------- حذف المنتج -------- */
+/* -------- حذف -------- */
 window.deleteProduct = async function (id) {
     if (!confirm("هل تريد حذف هذا المنتج؟")) return;
 
     await supabase.from("products").delete().eq("id", id);
     loadProducts();
-}
+};
 
-// تحميل البيانات أول مرة
+/* تشغيل */
 loadProducts();
 </script>
 
