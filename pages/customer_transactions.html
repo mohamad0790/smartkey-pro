@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>معاملات العميل</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700&display=swap" rel="stylesheet">
+
+<style>
+    body {
+        background: #000;
+        color: #fff;
+        font-family: Tajawal, sans-serif;
+        padding: 15px;
+    }
+    h2 {
+        text-align: center;
+        color: gold;
+    }
+    .box {
+        background: #111;
+        border: 2px solid gold;
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+    input, select, textarea {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid gold;
+        background: #222;
+        color: gold;
+        margin-bottom: 10px;
+        font-size: 16px;
+    }
+    button {
+        background: gold;
+        width: 100%;
+        padding: 12px;
+        font-size: 18px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-bottom: 10px;
+    }
+    .record {
+        background: #111;
+        border: 1px solid gold;
+        padding: 12px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+    }
+    .buttons {
+        display: flex;
+        gap: 10px;
+    }
+    .edit-btn {
+        flex: 1;
+        background: #0a84ff;
+        color: #fff;
+        border: none;
+        padding: 10px;
+        border-radius: 6px;
+    }
+    .del-btn {
+        flex: 1;
+        background: #ff3b30;
+        color: #fff;
+        border: none;
+        padding: 10px;
+        border-radius: 6px;
+    }
+</style>
+</head>
+
+<body>
+
+<h2>📌 معاملات العميل</h2>
+
+<div class="box">
+    <label>نوع العملية</label>
+    <select id="type">
+        <option value="دين">دين</option>
+        <option value="دفع">دفع</option>
+    </select>
+
+    <label>المبلغ</label>
+    <input type="number" id="amount" placeholder="أدخل المبلغ">
+
+    <label>ملاحظة</label>
+    <textarea id="note" rows="2" placeholder="اختياري"></textarea>
+
+    <button onclick="saveTransaction()">✔ إضافة العملية</button>
+</div>
+
+<div class="box">
+    <h3 style="color: gold;">📊 ملخص العميل</h3>
+    <div id="summary"></div>
+</div>
+
+<div class="box">
+    <h3 style="color: gold;">📜 آخر العمليات</h3>
+    <div id="records"></div>
+</div>
+
+<script type="module">
+import { supabase } from "../supabase.js";
+
+/* ============= حفظ عملية جديدة ============= */
+window.saveTransaction = async function () {
+    const customerId = localStorage.getItem("selectedCustomer");
+    const type = document.getElementById("type").value;
+    const amount = Number(document.getElementById("amount").value);
+    const note = document.getElementById("note").value;
+
+    if (!amount || amount <= 0) return alert("أدخل مبلغ صحيح");
+
+    // جلب آخر رصيد
+    const { data: last } = await supabase
+        .from("customer_transactions")
+        .select("balance_after")
+        .eq("customer_id", customerId)
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+    let previous = last?.length ? last[0].balance_after : 0;
+    let newBalance = type === "دين" ? previous + amount : previous - amount;
+
+    if (newBalance < 0) return alert("الرصيد لا يمكن أن يصبح سالب!");
+
+    // إضافة العملية
+    await supabase
+        .from("customer_transactions")
+        .insert([{
+            customer_id: customerId,
+            type,
+            amount,
+            note,
+            balance_after: newBalance,
+            created_at: new Date().toISOString()
+        }]);
+
+    // تحديث رصيد العميل
+    await supabase
+        .from("customers")
+        .update({ balance: newBalance })
+        .eq("id", customerId);
+
+    loadData();
+};
+
+/* ============= تحميل جميع البيانات ============= */
+async function loadData() {
+    const customerId = localStorage.getItem("selectedCustomer");
+
+    const { data: records } = await supabase
+        .from("customer_transactions")
+        .select("*")
+        .eq("customer_id", customerId)
+        .order("created_at", { ascending: false });
+
+    let totalDebt = 0;
+    let totalPay = 0;
+
+    // طباعة العمليات
+    let html = "";
+    records.forEach(r => {
+        if (r.type === "دين") totalDebt += r.amount;
+        else totalPay += r.amount;
+
+        html += `
+        <div class="record">
+            <div><b>النوع:</b> ${r.type}</div>
+            <div><b>المبلغ:</b> ${r.amount}</div>
+            <div><b>الرصيد بعد العملية:</b> ${r.balance_after}</div>
+            <div><b>التاريخ:</b> ${r.created_at.split("T")[0]}</div>
+            <div><b>ملاحظة:</b> ${r.note || "—"}</div>
+
+            <div class="buttons">
+                <button class="edit-btn" onclick="editRecord('${r.id}', '${r.type}', ${r.amount}, '${r.note}')">تعديل</button>
+                <button class="del-btn" onclick="deleteRecord('${r.id}')">حذف</button>
+            </div>
+        </div>`;
+    });
+
+    document.getElementById("records").innerHTML = html;
+
+    // طباعة الملخص
+    document.getElementById("summary").innerHTML = `
+        <div><b>إجمالي الديون:</b> ${totalDebt}</div>
+        <div><b>إجمالي المدفوعات:</b> ${totalPay}</div>
+        <div><b>الرصيد الحالي:</b> ${(totalDebt - totalPay)}</div>
+    `;
+}
+
+/* ============= تعديل عملية ============= */
+window.editRecord = async function (id, type, amount, note) {
+    let newAmount = prompt("أدخل المبلغ الجديد:", amount);
+    if (!newAmount || newAmount <= 0) return;
+
+    let newNote = prompt("أدخل ملاحظة جديدة:", note);
+
+    await supabase
+        .from("customer_transactions")
+        .update({ amount: Number(newAmount), note: newNote })
+        .eq("id", id);
+
+    loadData();
+};
+
+/* ============= حذف عملية ============= */
+window.deleteRecord = async function (id) {
+    if (!confirm("هل تريد حذف العملية؟")) return;
+
+    await supabase
+        .from("customer_transactions")
+        .delete()
+        .eq("id", id);
+
+    loadData();
+};
+
+loadData();
+</script>
+
+</body>
+</html>
