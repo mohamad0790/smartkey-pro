@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>تفاصيل فاتورة المبيعات</title>
+    <title>إضافة فاتورة مبيعات</title>
     <style>
         body {
             font-family: 'Tajawal', sans-serif;
@@ -33,8 +33,8 @@
         }
         table {
             width: 100%;
-            margin-top: 20px;
             border-collapse: collapse;
+            margin-top: 20px;
         }
         th, td {
             border: 1px solid gold;
@@ -51,11 +51,9 @@
 
 <h2>إضافة فاتورة مبيعات</h2>
 
-<!-- البحث بالباركود أو رقم الصنف -->
-<label>البحث بالباركود / رقم الصنف</label>
-<input type="text" id="productSearch" placeholder="اكتب الباركود أو رقم الصنف...">
+<label>ابحث برقم الصنف</label>
+<input type="text" id="productSearch" placeholder="اكتب رقم الصنف product_code...">
 
-<!-- قائمة المنتجات -->
 <label>اختر المنتج</label>
 <select id="productSelect"></select>
 
@@ -70,6 +68,7 @@
 <table>
     <thead>
         <tr>
+            <th>رقم الصنف</th>
             <th>المنتج</th>
             <th>الكمية</th>
             <th>السعر</th>
@@ -87,45 +86,35 @@
 <script type="module">
     import { supabase } from "../supabase.js";
 
-    let products = [];
-    let customers = [];
     let invoiceItems = [];
 
-    // تحميل العملاء
-    async function loadCustomers() {
-        const { data } = await supabase.from("customers").select("*");
-        let select = document.getElementById("customerSelect");
-
-        select.innerHTML = "<option value=''>اختر العميل</option>";
-
-        data.forEach(c => {
-            select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-        });
-
-        customers = data;
-    }
-
-    // تحميل المنتجات
+    // تحميل المنتجات من Supabase
     async function loadProducts() {
-        const { data } = await supabase.from("products").select("*");
-        let select = document.getElementById("productSelect");
+        const { data, error } = await supabase
+            .from("products")
+            .select("*");
 
+        if (error) {
+            alert("خطأ في تحميل المنتجات");
+            console.log(error);
+            return;
+        }
+
+        let select = document.getElementById("productSelect");
         select.innerHTML = "<option value=''>اختر المنتج</option>";
 
         data.forEach(p => {
             select.innerHTML += `
                 <option value="${p.id}" 
+                        data-name="${p.name}"
                         data-price="${p.sell}"
-                        data-barcode="${p.barcode}"
-                        data-sku="${p.sku}">
-                    ${p.barcode} — (${p.sku}) — ${p.name}
+                        data-code="${p.product_code}">
+                    ${p.product_code} — ${p.name} — (${p.sell} ريال)
                 </option>`;
         });
-
-        products = data;
     }
 
-    // البحث بالباركود أو رقم الصنف (SKU)
+    // البحث برقم الصنف
     document.getElementById("productSearch").addEventListener("input", function () {
         let search = this.value.trim();
         let select = document.getElementById("productSelect");
@@ -137,10 +126,7 @@
 
         for (let i = 0; i < select.options.length; i++) {
             let opt = select.options[i];
-            if (
-                opt.dataset.barcode === search ||
-                opt.dataset.sku === search
-            ) {
+            if (opt.dataset.code === search) {
                 select.selectedIndex = i;
                 break;
             }
@@ -152,22 +138,24 @@
         let productSelect = document.getElementById("productSelect");
         let productId = productSelect.value;
 
-        let qty = Number(document.getElementById("qty").value);
-        let discount = Number(document.getElementById("discount").value) || 0;
-
-        if (!productId || qty <= 0) {
-            alert("⚠️ اختر منتج وكمية صحيحة");
+        if (!productId) {
+            alert("⚠️ اختر المنتج");
             return;
         }
 
-        let productName = productSelect.options[productSelect.selectedIndex].textContent;
+        let qty = Number(document.getElementById("qty").value);
+        let discount = Number(document.getElementById("discount").value) || 0;
+
+        let name = productSelect.options[productSelect.selectedIndex].dataset.name;
         let price = Number(productSelect.options[productSelect.selectedIndex].dataset.price);
+        let code = productSelect.options[productSelect.selectedIndex].dataset.code;
 
         let total = (price * qty) - discount;
 
         invoiceItems.push({
             product_id: productId,
-            name: productName,
+            product_code: code,
+            name,
             qty,
             price,
             discount,
@@ -189,6 +177,7 @@
 
             table.innerHTML += `
                 <tr>
+                    <td>${item.product_code}</td>
                     <td>${item.name}</td>
                     <td>${item.qty}</td>
                     <td>${item.price}</td>
@@ -209,25 +198,21 @@
 
     // حفظ الفاتورة
     window.saveInvoice = async function () {
-        let customerId = document.getElementById("customerSelect").value;
-
-        if (!customerId) return alert("⚠️ اختر العميل");
         if (invoiceItems.length === 0) return alert("⚠️ لا توجد أصناف");
 
-        // أولاً: إدخال الفاتورة
         const { data, error } = await supabase
             .from("sales_invoices")
-            .insert([{ customer_id: customerId }])
+            .insert([{ created_at: new Date() }])
             .select();
 
         if (error) {
+            alert("خطأ في حفظ الفاتورة");
             console.log(error);
-            return alert("❌ فشل حفظ الفاتورة");
+            return;
         }
 
-        const invoiceId = data[0].id;
+        let invoiceId = data[0].id;
 
-        // ثانياً: إدخال الأصناف في جدول sales
         for (const item of invoiceItems) {
             await supabase.from("sales").insert([{
                 invoice_id: invoiceId,
@@ -239,7 +224,7 @@
             }]);
         }
 
-        alert("✅ تم إنشاء الفاتورة بنجاح");
+        alert("تم حفظ الفاتورة بنجاح");
         window.location.href = `sales_invoice.html?id=${invoiceId}`;
     };
 
