@@ -1,114 +1,115 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>إنشاء فاتورة</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إنشاء فاتورة</title>
 
-<style>
-body {
-    font-family: Arial;
-    direction: rtl;
-    background: #f5f5f5;
-    padding: 15px;
-}
-h1 {
-    text-align: center;
-}
-.box {
-    background: white;
-    padding: 15px;
-    border-radius: 12px;
-    box-shadow: 0 0 8px #ccc;
-}
-input, select {
-    width: 100%;
-    padding: 12px;
-    margin-top: 10px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-}
-button {
-    background: #007bff;
-    color: white;
-    padding: 12px;
-    border: none;
-    margin-top: 15px;
-    width: 100%;
-    font-size: 18px;
-    border-radius: 8px;
-}
-table {
-    width: 100%;
-    margin-top: 15px;
-    border-collapse: collapse;
-}
-table, th, td {
-    border: 1px solid #ddd;
-}
-th, td {
-    padding: 10px;
-    text-align: center;
-}
-.totalBox {
-    background: #e3ffe3;
-    padding: 12px;
-    border-radius: 8px;
-    font-size: 20px;
-    text-align: center;
-    margin-top: 10px;
-}
-</style>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            background: #f5f5f5;
+            padding: 15px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .box {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 0 8px #ccc;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 12px;
+            border: none;
+            margin-top: 15px;
+            width: 100%;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            margin-top: 15px;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        .totalBox {
+            background: #e3ffe3;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 20px;
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 
 <body>
 
-<h1>🧾 إنشاء فاتورة جديدة</h1>
+    <h1>🧾 إنشاء فاتورة جديدة</h1>
 
-<div class="box">
+    <div class="box">
 
-    <label>اختر العميل:</label>
-    <select id="customerSelect"></select>
+        <label>اختر العميل:</label>
+        <select id="customerSelect"></select>
 
-    <label>اختر المنتج:</label>
-    <select id="productSelect"></select>
+        <label>اختر المنتج:</label>
+        <select id="productSelect"></select>
 
-    <input id="qty" type="number" placeholder="الكمية" />
+        <input id="qty" type="number" placeholder="الكمية" />
 
-    <input id="discount" type="number" placeholder="الخصم (اختياري)" />
+        <input id="discount" type="number" placeholder="الخصم (اختياري)" />
 
-    <button onclick="addItem()">➕ إضافة للفاتورة</button>
+        <button onclick="addItem()">➕ إضافة للفاتورة</button>
 
-    <table>
-        <thead>
-            <tr>
-                <th>الصنف</th>
-                <th>الكمية</th>
-                <th>السعر</th>
-                <th>الإجمالي</th>
-                <th>حذف</th>
-            </tr>
-        </thead>
+        <table>
+            <thead>
+                <tr>
+                    <th>الصنف</th>
+                    <th>الكمية</th>
+                    <th>السعر</th>
+                    <th>الإجمالي</th>
+                    <th>حذف</th>
+                </tr>
+            </thead>
 
-        <tbody id="itemsTable"></tbody>
-    </table>
+            <tbody id="itemsTable"></tbody>
+        </table>
 
-    <div class="totalBox">
-        الإجمالي النهائي: <span id="totalFinal">0</span> ريال
+        <div class="totalBox">
+            الإجمالي النهائي: <span id="totalFinal">0</span> ريال
+        </div>
+
+        <button onclick="saveInvoice()">💾 حفظ الفاتورة</button>
+
     </div>
 
-    <button onclick="saveInvoice()">💾 حفظ الفاتورة</button>
+    <!-- ربط Supabase -->
+    <script type="module">
+        import { supabase } from "../supabase.js";
+        window.supabase = supabase;  // خليه متوفر لكل السكربتات
+    </script>
 
-</div>
-
-<!-- إضافة Supabase -->
-<script type="module">
-    import { supabase } from "../supabase.js";
-    window.supabase = supabase;
-</script>
-
-<!-- تشغيل كود صفحة إنشاء الفاتورة -->
-<script type="module" src="./sales_details.js"></script>
+    <!-- ربط كود الفاتورة من مجلد js -->
+    <script type="module" src="../js/sales_details.js"></script>
 
 </body>
 </html>
