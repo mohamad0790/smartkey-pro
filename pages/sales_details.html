@@ -51,9 +51,11 @@
 
 <h2>إضافة فاتورة مبيعات</h2>
 
-<label>اختر العميل</label>
-<select id="customerSelect"></select>
+<!-- البحث بالباركود أو رقم الصنف -->
+<label>البحث بالباركود / رقم الصنف</label>
+<input type="text" id="productSearch" placeholder="اكتب الباركود أو رقم الصنف...">
 
+<!-- قائمة المنتجات -->
 <label>اختر المنتج</label>
 <select id="productSelect"></select>
 
@@ -103,7 +105,7 @@
         customers = data;
     }
 
-    // تحميل المنتجات + السعر
+    // تحميل المنتجات
     async function loadProducts() {
         const { data } = await supabase.from("products").select("*");
         let select = document.getElementById("productSelect");
@@ -112,13 +114,38 @@
 
         data.forEach(p => {
             select.innerHTML += `
-                <option value="${p.id}" data-price="${p.sell}">
-                    ${p.name}
+                <option value="${p.id}" 
+                        data-price="${p.sell}"
+                        data-barcode="${p.barcode}"
+                        data-sku="${p.sku}">
+                    ${p.barcode} — (${p.sku}) — ${p.name}
                 </option>`;
         });
 
         products = data;
     }
+
+    // البحث بالباركود أو رقم الصنف (SKU)
+    document.getElementById("productSearch").addEventListener("input", function () {
+        let search = this.value.trim();
+        let select = document.getElementById("productSelect");
+
+        if (!search) {
+            select.selectedIndex = 0;
+            return;
+        }
+
+        for (let i = 0; i < select.options.length; i++) {
+            let opt = select.options[i];
+            if (
+                opt.dataset.barcode === search ||
+                opt.dataset.sku === search
+            ) {
+                select.selectedIndex = i;
+                break;
+            }
+        }
+    });
 
     // إضافة صنف للفاتورة
     window.addItem = function () {
@@ -216,7 +243,6 @@
         window.location.href = `sales_invoice.html?id=${invoiceId}`;
     };
 
-    loadCustomers();
     loadProducts();
 </script>
 
