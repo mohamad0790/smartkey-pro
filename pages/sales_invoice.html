@@ -1,154 +1,94 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>فاتورة مبيعات</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>فاتورة المبيعات</title>
 
-    <style>
-        body {
-            background: #000;
-            color: #fff;
-            font-family: Arial;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background: #111;
-            padding: 15px;
-            text-align: center;
-            border-bottom: 3px solid gold;
-            font-size: 26px;
-            font-weight: bold;
-        }
-        .box {
-            background: #111;
-            padding: 15px;
-            margin: 15px;
-            border-radius: 10px;
-            border: 2px solid gold;
-        }
-        input, select {
-            width: 100%;
-            padding: 12px;
-            margin-top: 10px;
-            border-radius: 8px;
-            border: 1px solid #444;
-            font-size: 17px;
-        }
-        button {
-            padding: 12px;
-            width: 100%;
-            margin-top: 10px;
-            background: gold;
-            color: #000;
-            border: none;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-        table {
-            width: 100%;
-            margin-top: 10px;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 10px;
-            text-align: center;
-            background: #111;
-            border-bottom: 1px solid #333;
-        }
-        .delete-btn {
-            background: red;
-            color: #fff;
-            padding: 6px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            border: none;
-        }
-
-        /* مكان الكاميرا */
-        #cameraBox {
-            display: none;
-            background: #111;
-            padding: 10px;
-            border-radius: 10px;
-            margin-top: 10px;
-            border: 2px solid gold;
-        }
-        video {
-            width: 100%;
-        }
-    </style>
-
-    <!-- مكتبة ماسح الباركود -->
-    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@latest"></script>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    padding: 20px;
+}
+.invoice-box {
+    max-width: 800px;
+    background: white;
+    margin: auto;
+    padding: 25px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+}
+h2 {
+    text-align: center;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+table, th, td {
+    border: 1px solid #ccc;
+}
+th, td {
+    padding: 10px;
+    text-align: center;
+}
+.total-box {
+    margin-top: 20px;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: left;
+}
+button {
+    padding: 12px;
+    background: #000;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    margin-top: 20px;
+    width: 100%;
+    font-size: 18px;
+}
+</style>
 </head>
 
 <body>
 
-<header>🧾 إنشاء فاتورة جديدة</header>
+<div class="invoice-box">
+    <h2>فاتورة بيع</h2>
 
-<!-- العملاء -->
-<div class="box">
-    <label>👤 اختر العميل</label>
-    <select id="customerSelect"></select>
-</div>
+    <p><b>رقم الفاتورة:</b> <span id="invoiceId"></span></p>
+    <p><b>اسم العميل:</b> <span id="customerName"></span></p>
+    <p><b>التاريخ:</b> <span id="invoiceDate"></span></p>
 
-<!-- البحث -->
-<div class="box">
-    <label>🔎 بحث الصنف (باركود / اسم / كود)</label>
-    <input id="barcodeInput" placeholder="اكتب أو امسح باركود">
-
-    <button onclick="startScan()">📷 تشغيل ماسح الباركود</button>
-
-    <div id="cameraBox">
-        <video id="video" playsinline></video>
-        <button onclick="stopScan()">❌ إيقاف الكاميرا</button>
-    </div>
-
-    <input id="productNameInput" placeholder="بحث بالاسم">
-    <input type="number" id="productQty" value="1" placeholder="الكمية">
-
-    <button onclick="addItemToInvoice()">➕ إضافة الصنف للفاتورة</button>
-</div>
-
-<!-- جدول الأصناف -->
-<div class="box">
     <table>
         <thead>
             <tr>
                 <th>الصنف</th>
-                <th>السعر</th>
                 <th>الكمية</th>
+                <th>السعر</th>
                 <th>الإجمالي</th>
-                <th>حذف</th>
             </tr>
         </thead>
-        <tbody id="invoiceTableBody"></tbody>
+        <tbody id="itemsTable"></tbody>
     </table>
+
+    <div class="total-box">
+        الإجمالي النهائي: <span id="finalTotal"></span> ريال
+    </div>
+
+    <button onclick="window.print()">🖨️ طباعة الفاتورة</button>
 </div>
 
-<!-- الحساب -->
-<div class="box">
-    <p>الإجمالي: <span id="totalNoTax">0</span> ريال</p>
+<!-- تحميل supabase -->
+<script type="module">
+    import { supabase } from "../supabase.js";
+    window.supabase = supabase;
+</script>
 
-    <label>الخصم</label>
-    <input type="number" id="discountInput" value="0">
-
-    <h3>الإجمالي النهائي: <span id="finalTotal">0</span> ريال</h3>
-
-    <label>المبلغ المدفوع</label>
-    <input id="paidAmount" type="number" placeholder="0">
-
-    <h3>المتبقي: <span id="remainingAmount">0</span> ريال</h3>
-
-    <button onclick="saveInvoice()">💾 حفظ الفاتورة</button>
-</div>
-
-<script type="module" src="../supabase.js"></script>
-<script type="module" src="../js/invoice.js"></script>
+<!-- سكربت الفاتورة -->
+<script type="module" src="./sales_invoice.js"></script>
 
 </body>
 </html>
