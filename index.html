@@ -1,8 +1,99 @@
-// supabase.js
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartKey Pro | الصفحة الرئيسية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700&display=swap" rel="stylesheet">
 
-// اتصال Supabase
-export const supabase = createClient(
-  "https://qvnxhqqewluqcdddltiw.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF2bnhocXFld2x1cWNkZGRsdGl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxMzMwMTMsImV4cCI6MjA3ODcwOTAxM30.5aw42Tx5Dj3ws4xHpErGYAulxN0OclPa3prDx_e_yR0"
-);
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Tajawal, sans-serif;
+            background: #000;
+            color: #fff;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 20px 0;
+            color: gold;
+            font-size: 28px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            padding: 20px;
+        }
+
+        .box {
+            background: #111;
+            border: 2px solid gold;
+            border-radius: 10px;
+            padding: 25px 10px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 18px;
+        }
+
+        .box:hover {
+            background: #222;
+        }
+
+        .footer-box {
+            width: 90%;
+            margin: 30px auto;
+            padding: 25px 10px;
+            background: #111;
+            border: 2px solid gold;
+            border-radius: 10px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>✨ SmartKey Pro</h1>
+
+    <div class="container">
+
+        <div class="box" onclick="location.href='pages/products_list.html'">
+            📦 قائمة المنتجات
+        </div>
+
+        <div class="box" onclick="location.href='pages/products.html'">
+            ➕ إضافة صنف
+        </div>
+
+        <div class="box" onclick="location.href='pages/sales_details.html'">
+            🧾 الفواتير
+        </div>
+
+        <div class="box" onclick="location.href='pages/sales.html'">
+            💰 المبيعات
+        </div>
+
+        <div class="box" onclick="location.href='pages/purchases.html'">
+            🛒 المشتريات
+        </div>
+
+        <div class="box" onclick="location.href='pages/customers.html'">
+            👤 العملاء
+        </div>
+
+        <div class="box" onclick="location.href='pages/sellers.html'">
+            👨‍🔧 البائعين
+        </div>
+
+    </div>
+
+    <div class="footer-box" onclick="location.href='pages/barcode.html'">
+        🔳 صناعة الباركود
+    </div>
+
+</body>
+</html>
