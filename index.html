@@ -1,131 +1,97 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartKey Pro | القائمة الرئيسية</title>
+    <title>SmartKey Pro | الصفحة الرئيسية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700&display=swap" rel="stylesheet">
 
     <style>
         body {
             margin: 0;
             padding: 0;
-            font-family: "Tajawal", Arial, sans-serif;
+            font-family: Tajawal, sans-serif;
             background: #000;
-            direction: rtl;
-            text-align: center;
             color: #fff;
+            text-align: center;
         }
 
         h1 {
-            margin-top: 25px;
+            margin: 20px 0;
+            color: gold;
             font-size: 28px;
-            color: #f7c300;
-            text-shadow: 0 0 10px #f7c300;
         }
 
-        .grid {
-            margin: 30px auto;
-            width: 90%;
+        .container {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 18px;
+            gap: 15px;
+            padding: 20px;
         }
 
-        .card {
+        .box {
             background: #111;
-            border: 2px solid #f7c300;
-            border-radius: 15px;
+            border: 2px solid gold;
+            border-radius: 10px;
             padding: 25px 10px;
-            box-shadow: 0 0 12px rgba(247, 195, 0, 0.3);
-            transition: 0.25s;
-        }
-
-        .card:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 18px rgba(247, 195, 0, 0.5);
             cursor: pointer;
+            transition: 0.3s;
+            font-size: 18px;
         }
 
-        .icon {
-            font-size: 48px;
-            margin-bottom: 10px;
+        .box:hover {
+            background: #222;
         }
 
-        .label {
-            font-size: 20px;
-            font-weight: bold;
-            color: #f7c300;
-        }
-
-        .barcode-box {
+        .footer-box {
             width: 90%;
-            margin: 20px auto;
+            margin: 30px auto;
+            padding: 25px 10px;
+            background: #111;
+            border: 2px solid gold;
+            border-radius: 10px;
+            font-size: 20px;
         }
     </style>
 </head>
 
 <body>
 
-    <h1>SmartKey Pro ✨</h1>
+    <h1>✨ SmartKey Pro</h1>
 
-    <div class="grid">
+    <div class="container">
+        <!-- 🔥 تمت إزالة مربع (إضافة صنف) بالكامل -->
 
-        <!-- ⭐ صفحة عرض المنتجات الجديدة -->
-        <div class="card" onclick="go('pages/products_list.html')">
-            <div class="icon">📦</div>
-            <div class="label">قائمة المنتجات</div>
+        <div class="box" onclick="location.href='pages/products.html'">
+            📦 قائمة المنتجات
         </div>
 
-        <!-- ➕ إضافة صنف جديد -->
-        <div class="card" onclick="go('pages/products.html')">
-            <div class="icon">➕</div>
-            <div class="label">إضافة صنف</div>
+        <div class="box" onclick="location.href='pages/sales_list.html'">
+            💰 المبيعات
         </div>
 
-        <!-- ⭐⭐ الفواتير (التعديل المهم هنا) -->
-        <div class="card" onclick="go('pages/sales_details.html')">
-            <div class="icon">🧾</div>
-            <div class="label">الفواتير</div>
+        <div class="box" onclick="location.href='pages/invoices.html'">
+            🧾 الفواتير
         </div>
 
-        <!-- المبيعات -->
-        <div class="card" onclick="go('pages/sales.html')">
-            <div class="icon">💰</div>
-            <div class="label">المبيعات</div>
+        <div class="box" onclick="location.href='pages/customers.html'">
+            👤 العملاء
         </div>
 
-        <!-- المشتريات -->
-        <div class="card" onclick="go('pages/purchases.html')">
-            <div class="icon">🛒</div>
-            <div class="label">المشتريات</div>
+        <div class="box" onclick="location.href='pages/purchases.html'">
+            🛒 المشتريات
         </div>
 
-        <!-- العملاء -->
-        <div class="card" onclick="go('pages/customers.html')">
-            <div class="icon">👤</div>
-            <div class="label">العملاء</div>
-        </div>
-
-        <!-- البائعين -->
-        <div class="card" onclick="go('pages/sellers.html')">
-            <div class="icon">👨‍🔧</div>
-            <div class="label">البائعين</div>
-        </div>
-
-    </div>
-
-    <div class="barcode-box">
-        <div class="card" onclick="go('pages/barcode.html')" style="width:100%;">
-            <div class="icon">🔳</div>
-            <div class="label">صناعة الباركود</div>
+        <div class="box" onclick="location.href='pages/sellers.html'">
+            👨‍🔧 البائعين
         </div>
     </div>
 
-    <script>
-        function go(url) {
-            window.location.href = url;
-        }
-    </script>
+    <div class="footer-box" onclick="location.href='pages/barcode.html'">
+        🧾 صناعة الباركود
+    </div>
 
 </body>
+
 </html>
