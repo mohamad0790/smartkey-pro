@@ -6,9 +6,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
-        body { background:#000; color:#fff; font-family:Arial; padding:20px; text-align:center; }
-        input { width:90%; padding:12px; margin:10px auto; border-radius:10px; border:1px solid gold; font-size:18px; display:block; }
-        button { background:gold; color:#000; padding:12px; width:90%; border:none; border-radius:10px; font-size:20px; font-weight:bold; margin-top:10px; }
+        body {
+            background:#000;
+            color:#fff;
+            font-family:Tajawal, sans-serif;
+            padding:20px;
+            text-align:center;
+        }
+        h2 {
+            color:gold;
+            margin-bottom:20px;
+        }
+        input {
+            width:90%;
+            padding:12px;
+            margin:10px auto;
+            border-radius:10px;
+            border:1px solid gold;
+            background:#111;
+            color:#fff;
+            font-size:18px;
+            display:block;
+        }
+        button {
+            background:gold;
+            color:#000;
+            padding:12px;
+            width:90%;
+            border:none;
+            border-radius:10px;
+            font-size:20px;
+            font-weight:bold;
+            margin-top:10px;
+            cursor:pointer;
+        }
     </style>
 </head>
 
@@ -24,7 +55,63 @@
 
 <button id="addProduct">إضافة الصنف</button>
 
-<script type="module" src="../js/products.js"></script>
+<!-- استدعاء Supabase -->
+<script type="module">
+
+import { supabase } from "../supabase.js";
+
+/* ========== إضافة صنف ========== */
+document.getElementById("addProduct").addEventListener("click", async () => {
+
+    let code = document.getElementById("productCode").value.trim();
+    let name = document.getElementById("productName").value.trim();
+    let buy = Number(document.getElementById("buyPrice").value);
+    let sell = Number(document.getElementById("sellPrice").value);
+    let qty = Number(document.getElementById("quantity").value);
+
+    // التحقق
+    if (!code || !name || !buy || !sell || !qty) {
+        alert("⚠️ الرجاء تعبئة جميع الحقول بشكل صحيح");
+        return;
+    }
+
+    if (buy <= 0 || sell <= 0 || qty <= 0) {
+        alert("⚠️ لا يمكن أن تكون القيم صفر أو أقل");
+        return;
+    }
+
+    // الإدخال في Supabase
+    const { error } = await supabase
+        .from("products")
+        .insert([{
+            code: code,
+            name: name,
+            buy_price: buy,
+            sell_price: sell,
+            qty: qty
+        }]);
+
+    if (error) {
+        console.log(error);
+        alert("❌ فشل حفظ الصنف");
+    } else {
+        alert("✅ تم إضافة الصنف بنجاح");
+
+        // مسح الحقول
+        document.getElementById("productCode").value = "";
+        document.getElementById("productName").value = "";
+        document.getElementById("buyPrice").value = "";
+        document.getElementById("sellPrice").value = "";
+        document.getElementById("quantity").value = "";
+
+        // تحويل تلقائي إلى صفحة المنتجات
+        setTimeout(() => {
+            location.href = "products.html";
+        }, 500);
+    }
+});
+
+</script>
 
 </body>
 </html>
