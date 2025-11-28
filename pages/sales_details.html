@@ -6,60 +6,67 @@ let invoiceItems = [];
 
 // تحميل العملاء
 async function loadCustomers() {
-    const { data, error } = await supabase.from("customers").select("*");
+    const { data } = await supabase.from("customers").select("*");
     let select = document.getElementById("customerSelect");
 
     select.innerHTML = "<option value=''>اختر العميل</option>";
 
-    if (data) {
-        customers = data;
-        data.forEach(c => {
-            select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-        });
-    }
+    data.forEach(c => {
+        select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+    });
+
+    customers = data;
 }
 
-// تحميل المنتجات
+// تحميل المنتجات + السعر
 async function loadProducts() {
-    const { data, error } = await supabase.from("products").select("*");
+    const { data } = await supabase.from("products").select("*");
     let select = document.getElementById("productSelect");
 
     select.innerHTML = "<option value=''>اختر المنتج</option>";
 
-    if (data) {
-        products = data;
-        data.forEach(p => {
-            select.innerHTML += `<option value="${p.id}">${p.name}</option>`;
-        });
-    }
+    data.forEach(p => {
+        select.innerHTML += `
+            <option value="${p.id}" data-price="${p.sell}">
+                ${p.name}
+            </option>`;
+    });
+
+    products = data;
 }
 
 // إضافة صنف للفاتورة
 window.addItem = function () {
-    let productId = document.getElementById("productSelect").value;
-    let qty = parseFloat(document.getElementById("qty").value);
-    let discount = parseFloat(document.getElementById("discount").value) || 0;
+    let productSelect = document.getElementById("productSelect");
+    let productId = productSelect.value;
 
-    if (!productId || qty <= 0) return alert("الرجاء اختيار المنتج وإدخال كمية");
+    let qty = Number(document.getElementById("qty").value);
+    let discount = Number(document.getElementById("discount").value) || 0;
 
-    let product = products.find(p => p.id == productId);
+    if (!productId || qty <= 0) {
+        alert("⚠️ اختر منتج وكمية صحيحة");
+        return;
+    }
 
-    let price = parseFloat(product.sell);
+    let productName = productSelect.options[productSelect.selectedIndex].textContent;
+    let price = Number(productSelect.options[productSelect.selectedIndex].dataset.price);
+
     let total = (price * qty) - discount;
 
     invoiceItems.push({
-        name: product.name,
+        product_id: productId,
+        name: productName,
         qty,
         price,
         discount,
         total
     });
 
-    renderItems();
+    renderTable();
 };
 
-// عرض الأصناف بالجدول
-function renderItems() {
+// عرض الجدول
+function renderTable() {
     let table = document.getElementById("itemsTable");
     table.innerHTML = "";
 
@@ -74,48 +81,56 @@ function renderItems() {
                 <td>${item.qty}</td>
                 <td>${item.price}</td>
                 <td>${item.total}</td>
-                <td><button onclick="deleteItem(${index})">❌</button></td>
+                <td><button onclick="removeItem(${index})">❌</button></td>
             </tr>
         `;
     });
 
-    document.getElementById("totalFinal").innerText = totalFinal;
+    document.getElementById("totalFinal").textContent = totalFinal;
 }
 
-// حذف عنصر
-window.deleteItem = function (index) {
+// حذف صنف
+window.removeItem = function (index) {
     invoiceItems.splice(index, 1);
-    renderItems();
+    renderTable();
 };
 
 // حفظ الفاتورة
 window.saveInvoice = async function () {
     let customerId = document.getElementById("customerSelect").value;
 
-    if (!customerId) return alert("اختر العميل أولاً");
+    if (!customerId) return alert("⚠️ اختر العميل");
+    if (invoiceItems.length === 0) return alert("⚠️ لا توجد أصناف");
 
-    if (invoiceItems.length === 0)
-        return alert("لا توجد أصناف في الفاتورة");
-
+    // أولاً: إدخال الفاتورة
     const { data, error } = await supabase
         .from("sales_invoices")
-        .insert([{
-            customer_id: customerId,
-            items: invoiceItems,
-            total: document.getElementById("totalFinal").innerText
-        }])
+        .insert([{ customer_id: customerId }])
         .select();
 
     if (error) {
         console.log(error);
-        return alert("فشل الحفظ");
+        return alert("❌ فشل حفظ الفاتورة");
     }
 
     const invoiceId = data[0].id;
 
+    // ثانياً: إدخال الأصناف في جدول sales
+    for (const item of invoiceItems) {
+        await supabase.from("sales").insert([{
+            invoice_id: invoiceId,
+            product_id: item.product_id,
+            qty: item.qty,
+            price: item.price,
+            discount: item.discount,
+            total: item.total
+        }]);
+    }
+
+    alert("✅ تم إنشاء الفاتورة بنجاح");
     window.location.href = `sales_invoice.html?id=${invoiceId}`;
 };
 
-// تحميل البيانات عند فتح الصفحة
+// تشغيل التحميل
 loadCustomers();
 loadProducts();
