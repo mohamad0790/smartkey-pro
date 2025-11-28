@@ -1,115 +1,121 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إنشاء فاتورة</title>
+import { supabase } from "../supabase.js";
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            direction: rtl;
-            background: #f5f5f5;
-            padding: 15px;
-        }
-        h1 {
-            text-align: center;
-        }
-        .box {
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 0 8px #ccc;
-        }
-        input, select {
-            width: 100%;
-            padding: 12px;
-            margin-top: 10px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-        }
-        button {
-            background: #007bff;
-            color: white;
-            padding: 12px;
-            border: none;
-            margin-top: 15px;
-            width: 100%;
-            font-size: 18px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        table {
-            width: 100%;
-            margin-top: 15px;
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid #ddd;
-        }
-        th, td {
-            padding: 10px;
-            text-align: center;
-        }
-        .totalBox {
-            background: #e3ffe3;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 20px;
-            text-align: center;
-            margin-top: 10px;
-        }
-    </style>
-</head>
+let products = [];
+let customers = [];
+let invoiceItems = [];
 
-<body>
+// تحميل العملاء
+async function loadCustomers() {
+    const { data, error } = await supabase.from("customers").select("*");
+    let select = document.getElementById("customerSelect");
 
-    <h1>🧾 إنشاء فاتورة جديدة</h1>
+    select.innerHTML = "<option value=''>اختر العميل</option>";
 
-    <div class="box">
+    if (data) {
+        customers = data;
+        data.forEach(c => {
+            select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+        });
+    }
+}
 
-        <label>اختر العميل:</label>
-        <select id="customerSelect"></select>
+// تحميل المنتجات
+async function loadProducts() {
+    const { data, error } = await supabase.from("products").select("*");
+    let select = document.getElementById("productSelect");
 
-        <label>اختر المنتج:</label>
-        <select id="productSelect"></select>
+    select.innerHTML = "<option value=''>اختر المنتج</option>";
 
-        <input id="qty" type="number" placeholder="الكمية" />
+    if (data) {
+        products = data;
+        data.forEach(p => {
+            select.innerHTML += `<option value="${p.id}">${p.name}</option>`;
+        });
+    }
+}
 
-        <input id="discount" type="number" placeholder="الخصم (اختياري)" />
+// إضافة صنف للفاتورة
+window.addItem = function () {
+    let productId = document.getElementById("productSelect").value;
+    let qty = parseFloat(document.getElementById("qty").value);
+    let discount = parseFloat(document.getElementById("discount").value) || 0;
 
-        <button onclick="addItem()">➕ إضافة للفاتورة</button>
+    if (!productId || qty <= 0) return alert("الرجاء اختيار المنتج وإدخال كمية");
 
-        <table>
-            <thead>
-                <tr>
-                    <th>الصنف</th>
-                    <th>الكمية</th>
-                    <th>السعر</th>
-                    <th>الإجمالي</th>
-                    <th>حذف</th>
-                </tr>
-            </thead>
+    let product = products.find(p => p.id == productId);
 
-            <tbody id="itemsTable"></tbody>
-        </table>
+    let price = parseFloat(product.sell);
+    let total = (price * qty) - discount;
 
-        <div class="totalBox">
-            الإجمالي النهائي: <span id="totalFinal">0</span> ريال
-        </div>
+    invoiceItems.push({
+        name: product.name,
+        qty,
+        price,
+        discount,
+        total
+    });
 
-        <button onclick="saveInvoice()">💾 حفظ الفاتورة</button>
+    renderItems();
+};
 
-    </div>
+// عرض الأصناف بالجدول
+function renderItems() {
+    let table = document.getElementById("itemsTable");
+    table.innerHTML = "";
 
-    <!-- ربط Supabase -->
-    <script type="module">
-        import { supabase } from "../supabase.js";
-        window.supabase = supabase;  // خليه متوفر لكل السكربتات
-    </script>
+    let totalFinal = 0;
 
-    <!-- ربط كود الفاتورة من مجلد js -->
-    <script type="module" src="../js/sales_details.js"></script>
+    invoiceItems.forEach((item, index) => {
+        totalFinal += item.total;
 
-</body>
-</html>
+        table.innerHTML += `
+            <tr>
+                <td>${item.name}</td>
+                <td>${item.qty}</td>
+                <td>${item.price}</td>
+                <td>${item.total}</td>
+                <td><button onclick="deleteItem(${index})">❌</button></td>
+            </tr>
+        `;
+    });
+
+    document.getElementById("totalFinal").innerText = totalFinal;
+}
+
+// حذف عنصر
+window.deleteItem = function (index) {
+    invoiceItems.splice(index, 1);
+    renderItems();
+};
+
+// حفظ الفاتورة
+window.saveInvoice = async function () {
+    let customerId = document.getElementById("customerSelect").value;
+
+    if (!customerId) return alert("اختر العميل أولاً");
+
+    if (invoiceItems.length === 0)
+        return alert("لا توجد أصناف في الفاتورة");
+
+    const { data, error } = await supabase
+        .from("sales_invoices")
+        .insert([{
+            customer_id: customerId,
+            items: invoiceItems,
+            total: document.getElementById("totalFinal").innerText
+        }])
+        .select();
+
+    if (error) {
+        console.log(error);
+        return alert("فشل الحفظ");
+    }
+
+    const invoiceId = data[0].id;
+
+    window.location.href = `sales_invoice.html?id=${invoiceId}`;
+};
+
+// تحميل البيانات عند فتح الصفحة
+loadCustomers();
+loadProducts();
