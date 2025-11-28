@@ -12,7 +12,7 @@ async function loadCustomers() {
     });
 }
 
-// تحميل الأصناف
+// تحميل المنتجات
 async function loadProducts() {
     const { data } = await window.supabase.from("products").select("*");
     const select = document.getElementById("productSelect");
@@ -22,7 +22,7 @@ async function loadProducts() {
         const op = document.createElement("option");
         op.value = p.id;
         op.textContent = p.name;
-        op.dataset.price = p.sell; // سعر البيع
+        op.dataset.price = p.sell;
         select.appendChild(op);
     });
 }
@@ -30,7 +30,7 @@ async function loadProducts() {
 // مصفوفة الفاتورة
 let invoiceItems = [];
 
-// إضافة صنف إلى الفاتورة
+// إضافة صنف
 window.addItem = function () {
     const productSelect = document.getElementById("productSelect");
     const productId = productSelect.value;
@@ -40,7 +40,7 @@ window.addItem = function () {
     const discount = Number(document.getElementById("discount").value) || 0;
 
     if (!productId || qty <= 0) {
-        alert("⚠️ الرجاء اختيار منتج وإدخال كمية صحيحة");
+        alert("⚠️ الرجاء اختيار منتج وكمية صحيحة");
         return;
     }
 
@@ -58,7 +58,7 @@ window.addItem = function () {
     renderTable();
 };
 
-// عرض الجدول
+// إعادة رسم الجدول
 function renderTable() {
     const table = document.getElementById("itemsTable");
     table.innerHTML = "";
@@ -66,7 +66,7 @@ function renderTable() {
     let totalFinal = 0;
 
     invoiceItems.forEach((item, index) => {
-        const row = `
+        table.innerHTML += `
             <tr>
                 <td>${item.name}</td>
                 <td>${item.qty}</td>
@@ -75,7 +75,6 @@ function renderTable() {
                 <td><button onclick="removeItem(${index})">❌</button></td>
             </tr>
         `;
-        table.innerHTML += row;
         totalFinal += item.total;
     });
 
@@ -92,25 +91,21 @@ window.removeItem = function (index) {
 window.saveInvoice = async function () {
     const customerId = document.getElementById("customerSelect").value;
 
-    if (!customerId || invoiceItems.length === 0) {
-        alert("⚠️ الرجاء اختيار العميل وإضافة أصناف");
-        return;
-    }
+    if (!customerId) return alert("⚠️ اختر العميل");
+    if (invoiceItems.length === 0) return alert("⚠️ لا توجد أصناف في الفاتورة");
 
-    // حفظ الفاتورة الأساسية
-    const { data: invoice, error } = await window.supabase
+    const { data, error } = await window.supabase
         .from("sales_invoices")
         .insert([{ customer_id: customerId }])
         .select();
 
     if (error) {
-        alert("❌ حدث خطأ أثناء حفظ الفاتورة");
+        alert("❌ فشل حفظ الفاتورة");
         return;
     }
 
-    const invoiceId = invoice[0].id;
+    const invoiceId = data[0].id;
 
-    // حفظ تفاصيل الفاتورة
     for (const item of invoiceItems) {
         await window.supabase.from("sales").insert([
             {
@@ -128,6 +123,6 @@ window.saveInvoice = async function () {
     window.location.reload();
 };
 
-// تشغيل عند فتح الصفحة
+// تشغيل عند تحميل الصفحة
 loadCustomers();
 loadProducts();
