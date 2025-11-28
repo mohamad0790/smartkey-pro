@@ -60,6 +60,20 @@
         border-radius:5px;
         cursor:pointer;
     }
+    .detail-btn {
+        background:#0a84ff;
+        color:white;
+        padding:5px 10px;
+        border-radius:5px;
+        cursor:pointer;
+    }
+    .trans-btn {
+        background:#14c400;
+        color:white;
+        padding:5px 10px;
+        border-radius:5px;
+        cursor:pointer;
+    }
 </style>
 </head>
 
@@ -90,14 +104,11 @@
     <tbody></tbody>
 </table>
 
-<!-- لا تستدعي supabase.js هنا -->
-<!-- سيتم الاستدعاء من داخل سكريبت JS فقط -->
-
+<!-- استدعاء Supabase بالطريقة الصحيحة -->
 <script type="module">
-
 import { supabase } from "../supabase.js";
 
-// إضافة العميل
+/* ============ إضافة عميل ============ */
 document.getElementById("saveCustomer").addEventListener("click", async () => {
     const name = document.getElementById("customerName").value.trim();
     const phone = document.getElementById("customerPhone").value.trim();
@@ -109,7 +120,7 @@ document.getElementById("saveCustomer").addEventListener("click", async () => {
 
     const { error } = await supabase
         .from("customers")
-        .insert([{ name, phone }]);
+        .insert([{ name, phone, balance: 0 }]);
 
     if (error) {
         alert("❌ فشل الحفظ");
@@ -122,18 +133,12 @@ document.getElementById("saveCustomer").addEventListener("click", async () => {
     }
 });
 
-
-// جلب العملاء
+/* ============ جلب العملاء ============ */
 async function loadCustomers() {
     const { data, error } = await supabase
         .from("customers")
         .select("*")
         .order("id", { ascending: false });
-
-    if (error) {
-        console.log(error);
-        return;
-    }
 
     const tbody = document.querySelector("#customersTable tbody");
     tbody.innerHTML = "";
@@ -144,6 +149,11 @@ async function loadCustomers() {
                 <td>${cust.name}</td>
                 <td>${cust.phone}</td>
                 <td>
+
+                    <button class="detail-btn" onclick="openDetails(${cust.id})">تفاصيل</button>
+
+                    <button class="trans-btn" onclick="openTransactions(${cust.id})">معاملات</button>
+
                     <button class="delete-btn" onclick="deleteCustomer(${cust.id})">حذف</button>
                 </td>
             </tr>
@@ -151,25 +161,29 @@ async function loadCustomers() {
     });
 }
 
-// حذف عميل
+/* ============ حذف عميل ============ */
 window.deleteCustomer = async function(id) {
     const ok = confirm("❗ هل تريد حذف هذا العميل؟");
     if (!ok) return;
 
-    const { error } = await supabase
-        .from("customers")
-        .delete()
-        .eq("id", id);
-
-    if (error) {
-        alert("❌ فشل الحذف");
-    } else {
-        alert("🗑️ تم الحذف");
-        loadCustomers();
-    }
+    await supabase.from("customers").delete().eq("id", id);
+    alert("🗑️ تم الحذف");
+    loadCustomers();
 };
 
-// تحميل العملاء عند فتح الصفحة
+/* ============ صفحة تفاصيل العميل ============ */
+window.openDetails = function(id) {
+    localStorage.setItem("selectedCustomer", id);
+    location.href = "customer_details.html";
+};
+
+/* ============ صفحة معاملات العميل ============ */
+window.openTransactions = function(id) {
+    localStorage.setItem("selectedCustomer", id);
+    location.href = "customer_transactions.html";
+};
+
+/* تحميل بيانات العملاء */
 loadCustomers();
 
 </script>
