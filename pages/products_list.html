@@ -65,7 +65,6 @@ th {
     margin:2px;
 }
 
-/* Popup */
 #popup, #editPopup {
     display:none;
     position:fixed;
@@ -118,6 +117,7 @@ img.product-image {
 <tr>
 <th>الصورة</th>
 <th>الكود</th>
+<th>الباركود</th> <!-- ✨ تمت الإضافة -->
 <th>الاسم</th>
 <th>شراء</th>
 <th>بيع</th>
@@ -153,6 +153,7 @@ img.product-image {
         <h3 style="color:gold;">تعديل المنتج</h3>
 
         <input id="editCode">
+        <input id="editBarcode" disabled> <!-- ✨ إظهار الباركود في التعديل -->
         <input id="editName">
         <input id="editBuy" type="number">
         <input id="editSell" type="number">
@@ -173,17 +174,14 @@ let allProducts = [];
 let editId = null;
 let oldImageUrl = null;
 
-/* -------- الانتقال لصفحة الإضافة -------- */
 window.goToAddPage = function () {
     window.location.href = "add_product.html";
 };
 
-/* -------- نوافذ -------- */
 window.openPopup = () => document.getElementById("popup").style.display = "flex";
 window.closePopup = () => document.getElementById("popup").style.display = "none";
 window.closeEditPopup = () => document.getElementById("editPopup").style.display = "none";
 
-/* -------- رفع الصورة -------- */
 async function uploadImage(file) {
     if (!file) return null;
 
@@ -227,6 +225,7 @@ function displayProducts(list) {
         <tr>
             <td>${p.image_url ? `<img src="${p.image_url}" class="product-image">` : "—"}</td>
             <td>${p.product_code}</td>
+            <td>${p.barcode ?? "—"}</td> <!-- ✨ عرض الباركود -->
             <td>${p.name}</td>
             <td>${p.buy}</td>
             <td>${p.sell}</td>
@@ -245,7 +244,8 @@ window.searchProducts = function () {
 
     const filtered = allProducts.filter(p =>
         (p.name + "").includes(text) ||
-        (p.product_code + "").includes(text)
+        (p.product_code + "").includes(text) ||
+        (p.barcode + "").includes(text)   // ✨ البحث بالباركود
     );
 
     displayProducts(filtered);
@@ -253,6 +253,8 @@ window.searchProducts = function () {
 
 /* -------- إضافة منتج -------- */
 window.saveProduct = async function () {
+    const barcode = Date.now().toString(); // ✨ توليد باركود تلقائي
+
     const pCode = document.getElementById("addCode").value;
     const pName = document.getElementById("addName").value;
     const pBuy  = document.getElementById("addBuy").value;
@@ -268,7 +270,8 @@ window.saveProduct = async function () {
         buy: pBuy,
         sell: pSell,
         quantity: pQty,
-        image_url: imageUrl
+        image_url: imageUrl,
+        barcode: barcode  // ✨ الحفظ
     });
 
     closePopup();
@@ -284,6 +287,7 @@ window.editProduct = function (id) {
     oldImageUrl = p.image_url;
 
     document.getElementById("editCode").value = p.product_code;
+    document.getElementById("editBarcode").value = p.barcode; // ✨ عرض الباركود
     document.getElementById("editName").value = p.name;
     document.getElementById("editBuy").value = p.buy;
     document.getElementById("editSell").value = p.sell;
@@ -292,7 +296,7 @@ window.editProduct = function (id) {
     document.getElementById("editPopup").style.display = "flex";
 };
 
-/* -------- تحديث المنتج -------- */
+/* -------- تحديث -------- */
 window.updateProduct = async function () {
     const newImageFile = document.getElementById("editImage").files[0];
 
@@ -325,7 +329,6 @@ window.deleteProduct = async function (id) {
     loadProducts();
 };
 
-/* تشغيل */
 loadProducts();
 </script>
 
