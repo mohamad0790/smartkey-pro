@@ -159,28 +159,32 @@ window.saveInvoice = async function () {
     let customerId = document.getElementById("customerSelect").value;
 
     if (!customerId) return alert("اختر العميل");
-
     if (invoiceItems.length === 0) return alert("لا توجد أصناف");
 
+    // إنشاء الفاتورة
     const { data, error } = await supabase
         .from("sales_invoices")
         .insert([{ customer_id: customerId, created_at: new Date() }])
         .select();
 
+    if (error) {
+        console.log(error);
+        return alert("❌ فشل إنشاء الفاتورة");
+    }
+
     let invoiceId = data[0].id;
 
+    // إضافة تفاصيل الأصناف
     for (let item of invoiceItems) {
-        await supabase.from("sales").insert([{
-            invoice_id: invoiceId,
+        await supabase.from("sale_items").insert([{
+            sale_id: invoiceId,
             product_id: item.product_id,
-            qty: item.qty,
-            price: item.price,
-            discount: item.discount,
-            total: item.total
+            quantity: item.qty,
+            price: item.price
         }]);
     }
 
-    alert("تم حفظ الفاتورة");
+    alert("تم حفظ الفاتورة بنجاح ✔️");
     window.location.href = `sales_invoice.html?id=${invoiceId}`;
 };
 
