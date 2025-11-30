@@ -60,20 +60,6 @@
         border-radius:5px;
         cursor:pointer;
     }
-    .detail-btn {
-        background:#0a84ff;
-        color:white;
-        padding:5px 10px;
-        border-radius:5px;
-        cursor:pointer;
-    }
-    .trans-btn {
-        background:#14c400;
-        color:white;
-        padding:5px 10px;
-        border-radius:5px;
-        cursor:pointer;
-    }
 </style>
 </head>
 
@@ -104,7 +90,6 @@
     <tbody></tbody>
 </table>
 
-<!-- استدعاء Supabase بالطريقة الصحيحة -->
 <script type="module">
 import { supabase } from "../supabase.js";
 
@@ -138,7 +123,7 @@ async function loadCustomers() {
     const { data, error } = await supabase
         .from("customers")
         .select("*")
-        .order("id", { ascending: false });
+        .order("created_at", { ascending: false });
 
     const tbody = document.querySelector("#customersTable tbody");
     tbody.innerHTML = "";
@@ -149,12 +134,7 @@ async function loadCustomers() {
                 <td>${cust.name}</td>
                 <td>${cust.phone}</td>
                 <td>
-
-                    <button class="detail-btn" onclick="openDetails(${cust.id})">تفاصيل</button>
-
-                    <button class="trans-btn" onclick="openTransactions(${cust.id})">معاملات</button>
-
-                    <button class="delete-btn" onclick="deleteCustomer(${cust.id})">حذف</button>
+                    <button class="delete-btn" onclick="deleteCustomer('${cust.id}')">حذف</button>
                 </td>
             </tr>
         `;
@@ -171,19 +151,7 @@ window.deleteCustomer = async function(id) {
     loadCustomers();
 };
 
-/* ============ صفحة تفاصيل العميل ============ */
-window.openDetails = function(id) {
-    localStorage.setItem("selectedCustomer", id);
-    location.href = "customer_details.html";
-};
-
-/* ============ صفحة معاملات العميل ============ */
-window.openTransactions = function(id) {
-    localStorage.setItem("selectedCustomer", id);
-    location.href = "customer_transactions.html";
-};
-
-/* تحميل بيانات العملاء */
+/* تحميل العملاء */
 loadCustomers();
 
 </script>
