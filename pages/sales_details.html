@@ -40,7 +40,6 @@
     button {
         width: 100%;
         padding: 12px;
-        background: #007bff;
         border: none;
         color: #fff;
         font-size: 17px;
@@ -97,13 +96,13 @@
 
 <h2>🧾 إنشاء فاتورة جديدة</h2>
 
+<!-- زر الماسح -->
+<button id="scanBtn">🔍 مسح الباركود بالكاميرا</button>
+
+<!-- عرض الكاميرا -->
+<video id="cameraPreview"></video>
+
 <div class="box">
-
-    <!-- زر مسح الباركود -->
-    <button id="scanBtn">🔍 مسح الباركود بالكاميرا</button>
-
-    <!-- عرض الكاميرا -->
-    <video id="cameraPreview"></video>
 
     <label>اختر العميل:</label>
     <select id="customerSelect"></select>
@@ -115,7 +114,7 @@
     <input type="number" id="qty" placeholder="الكمية">
     <input type="number" id="discount" placeholder="الخصم (اختياري)">
 
-    <button onclick="addItem()">➕ إضافة للفاتورة</button>
+    <button style="background:#007bff" onclick="addItem()">➕ إضافة للفاتورة</button>
 
     <table>
         <thead>
@@ -134,17 +133,17 @@
         الإجمالي النهائي: <span id="totalFinal">0</span> ريال
     </div>
 
-    <button onclick="saveInvoice()">💾 حفظ الفاتورة</button>
+    <button style="background:#007bff" onclick="saveInvoice()">💾 حفظ الفاتورة</button>
 
 </div>
 
-<!-- استدعاء Supabase -->
+<!-- Supabase -->
 <script type="module">
     import { supabase } from "../supabase.js?v=1";
     window.supabase = supabase;
 </script>
 
-<!-- ملف الجافاسكربت -->
+<!-- ملف JS -->
 <script type="module" src="../js/sales_details.js?v=1"></script>
 
 </body>
