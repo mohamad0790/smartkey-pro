@@ -13,12 +13,7 @@
         padding: 15px;
         text-align: center;
     }
-
-    h2 {
-        color: #333;
-        margin-bottom: 15px;
-    }
-
+    h2 { color: #333; margin-bottom: 15px; }
     .box {
         background: #fff;
         padding: 15px;
@@ -27,7 +22,6 @@
         margin: auto;
         max-width: 600px;
     }
-
     select, input {
         width: 100%;
         padding: 10px;
@@ -36,10 +30,10 @@
         border: 1px solid #ccc;
         font-size: 16px;
     }
-
     button {
         width: 100%;
         padding: 12px;
+        background: #007bff;
         border: none;
         color: #fff;
         font-size: 17px;
@@ -47,31 +41,26 @@
         margin-top: 10px;
         cursor: pointer;
     }
-
     #scanBtn {
         background: #28a745 !important;
         font-size: 18px !important;
     }
-
     #cameraPreview {
         width: 100%;
         display: none;
         border-radius: 10px;
         margin-bottom: 10px;
     }
-
     table {
         width: 100%;
         margin-top: 10px;
         border-collapse: collapse;
     }
-
     th, td {
         border: 1px solid #ddd;
         padding: 8px;
         text-align: center;
     }
-
     .totalBox {
         background: #d9ffd9;
         padding: 12px;
@@ -80,7 +69,6 @@
         font-size: 18px;
         font-weight: bold;
     }
-
     .delete-btn {
         background: red;
         color: white;
@@ -96,10 +84,9 @@
 
 <h2>🧾 إنشاء فاتورة جديدة</h2>
 
-<!-- زر الماسح -->
 <button id="scanBtn">🔍 مسح الباركود بالكاميرا</button>
 
-<!-- عرض الكاميرا -->
+<!-- مهم جداً: هذا هو العنصر الذي يجعـل الزر يعمل -->
 <video id="cameraPreview"></video>
 
 <div class="box">
@@ -114,7 +101,7 @@
     <input type="number" id="qty" placeholder="الكمية">
     <input type="number" id="discount" placeholder="الخصم (اختياري)">
 
-    <button style="background:#007bff" onclick="addItem()">➕ إضافة للفاتورة</button>
+    <button onclick="addItem()">➕ إضافة للفاتورة</button>
 
     <table>
         <thead>
@@ -133,17 +120,15 @@
         الإجمالي النهائي: <span id="totalFinal">0</span> ريال
     </div>
 
-    <button style="background:#007bff" onclick="saveInvoice()">💾 حفظ الفاتورة</button>
+    <button onclick="saveInvoice()">💾 حفظ الفاتورة</button>
 
 </div>
 
-<!-- Supabase -->
 <script type="module">
     import { supabase } from "../supabase.js?v=1";
     window.supabase = supabase;
 </script>
 
-<!-- ملف JS -->
 <script type="module" src="../js/sales_details.js?v=1"></script>
 
 </body>
