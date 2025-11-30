@@ -4,72 +4,57 @@ let customers = [];
 let products = [];
 let invoiceItems = [];
 
+// زر الفيديو
 let scannerActive = false;
 let video = document.getElementById("cameraPreview");
 
-// ------------------------------
 // تحميل العملاء
-// ------------------------------
 async function loadCustomers() {
     const { data, error } = await supabase.from("customers").select("*");
 
     let select = document.getElementById("customerSelect");
     select.innerHTML = "<option value=''>اختر العميل</option>";
 
-    if (error) {
-        console.log(error);
-        alert("خطأ في تحميل العملاء");
-        return;
-    }
+    if (error) return alert("خطأ في تحميل العملاء");
 
     customers = data;
 
     data.forEach(c => {
-        select.innerHTML += `
-            <option value="${c.id}">
-                ${c.name} — ${c.phone}
-            </option>`;
+        select.innerHTML += `<option value="${c.id}">${c.name} — ${c.phone}</option>`;
     });
 }
 
-// ------------------------------
 // تحميل المنتجات
-// ------------------------------
 async function loadProducts() {
     const { data, error } = await supabase.from("products").select("*");
 
     let select = document.getElementById("productSelect");
     select.innerHTML = "<option value=''>اختر المنتج</option>";
 
-    if (error) {
-        console.log(error);
-        alert("خطأ في تحميل المنتجات");
-        return;
-    }
+    if (error) return alert("خطأ في تحميل المنتجات");
 
     products = data;
 
     data.forEach(p => {
         select.innerHTML += `
-            <option value="${p.id}"
-                    data-name="${p.name}"
-                    data-price="${p.sell}"
+            <option value="${p.id}" 
+                    data-name="${p.name}" 
+                    data-price="${p.sell}" 
                     data-code="${p.product_code}">
                 ${p.product_code} — ${p.name} — (${p.sell} ريال)
             </option>`;
     });
 }
 
-// ------------------------------
-// مسح الباركود بالكاميرا
-// ------------------------------
+// ماسح الباركود
 import('https://cdn.jsdelivr.net/npm/@zxing/library@latest').then(lib => {
     const { BrowserMultiFormatReader } = lib;
-    const codeReader = new BrowserMultiFormatReader();
+    const reader = new BrowserMultiFormatReader();
 
     document.getElementById("scanBtn").addEventListener("click", async () => {
+
         if (scannerActive) {
-            codeReader.reset();
+            reader.reset();
             video.style.display = "none";
             scannerActive = false;
             return;
@@ -81,32 +66,21 @@ import('https://cdn.jsdelivr.net/npm/@zxing/library@latest').then(lib => {
         const devices = await navigator.mediaDevices.enumerateDevices();
         const camera = devices.find(d => d.kind === "videoinput");
 
-        if (!camera) {
-            alert("لا يوجد كاميرا!");
-            return;
-        }
+        reader.decodeFromVideoDevice(camera.deviceId, video, (result, err) => {
+            if (result) {
+                let barcode = result.text;
 
-        codeReader.decodeFromVideoDevice(
-            camera.deviceId,
-            video,
-            (result, err) => {
-                if (result) {
-                    let barcode = result.text;
-                    console.log("Barcode:", barcode);
-                    scannerActive = false;
-                    video.style.display = "none";
-                    codeReader.reset();
+                reader.reset();
+                video.style.display = "none";
+                scannerActive = false;
 
-                    selectProductByBarcode(barcode);
-                }
+                selectProductByBarcode(barcode);
             }
-        );
+        });
     });
 });
 
-// ------------------------------
-// اختيار المنتج أوتوماتيكياً بعد مسح الباركود
-// ------------------------------
+// اختيار المنتج بعد قراءة الباركود
 function selectProductByBarcode(barcode) {
     let select = document.getElementById("productSelect");
 
@@ -118,40 +92,15 @@ function selectProductByBarcode(barcode) {
         }
     }
 
-    alert("❌ الباركود غير موجود في المنتجات");
+    alert("❌ الباركود غير موجود");
 }
 
-// ------------------------------
-// البحث اليدوي بالباركود (اختياري)
-// ------------------------------
-document.getElementById("barcodeInput").addEventListener("input", function () {
-    let code = this.value.trim();
-    let select = document.getElementById("productSelect");
-
-    if (!code) {
-        select.selectedIndex = 0;
-        return;
-    }
-
-    for (let i = 0; i < select.options.length; i++) {
-        if (select.options[i].dataset.code === code) {
-            select.selectedIndex = i;
-            break;
-        }
-    }
-});
-
-// ------------------------------
-// إضافة صنف للفاتورة
-// ------------------------------
+// إضافة صنف
 window.addItem = function () {
     let select = document.getElementById("productSelect");
     let productId = select.value;
 
-    if (!productId) {
-        alert("⚠️ اختر المنتج");
-        return;
-    }
+    if (!productId) return alert("اختر المنتج");
 
     let name = select.options[select.selectedIndex].dataset.name;
     let price = Number(select.options[select.selectedIndex].dataset.price);
@@ -160,7 +109,7 @@ window.addItem = function () {
     let qty = Number(document.getElementById("qty").value) || 1;
     let discount = Number(document.getElementById("discount").value) || 0;
 
-    let total = (price * qty) - discount;
+    let total = price * qty - discount;
 
     invoiceItems.push({
         product_id: productId,
@@ -175,9 +124,7 @@ window.addItem = function () {
     renderTable();
 };
 
-// ------------------------------
-// عرض الأصناف داخل الجدول
-// ------------------------------
+// عرض الجدول
 function renderTable() {
     let table = document.getElementById("itemsTable");
     table.innerHTML = "";
@@ -201,44 +148,28 @@ function renderTable() {
     document.getElementById("totalFinal").textContent = final;
 }
 
-// ------------------------------
 // حذف صنف
-// ------------------------------
 window.removeItem = function (index) {
     invoiceItems.splice(index, 1);
     renderTable();
 };
 
-// ------------------------------
-// حفظ الفاتورة في Supabase
-// ------------------------------
+// حفظ الفاتورة
 window.saveInvoice = async function () {
     let customerId = document.getElementById("customerSelect").value;
 
-    if (!customerId) {
-        return alert("⚠️ اختر العميل قبل الحفظ");
-    }
+    if (!customerId) return alert("اختر العميل");
 
-    if (invoiceItems.length === 0) {
-        return alert("⚠️ لا توجد أصناف");
-    }
+    if (invoiceItems.length === 0) return alert("لا توجد أصناف");
 
-    // إنشاء فاتورة جديدة
     const { data, error } = await supabase
         .from("sales_invoices")
         .insert([{ customer_id: customerId, created_at: new Date() }])
         .select();
 
-    if (error) {
-        console.log(error);
-        alert("خطأ في حفظ الفاتورة");
-        return;
-    }
-
     let invoiceId = data[0].id;
 
-    // حفظ تفاصيل الأصناف
-    for (const item of invoiceItems) {
+    for (let item of invoiceItems) {
         await supabase.from("sales").insert([{
             invoice_id: invoiceId,
             product_id: item.product_id,
@@ -249,10 +180,10 @@ window.saveInvoice = async function () {
         }]);
     }
 
-    alert("✅ تم حفظ الفاتورة بنجاح");
+    alert("تم حفظ الفاتورة");
     window.location.href = `sales_invoice.html?id=${invoiceId}`;
 };
 
-// تحميل البيانات عند فتح الصفحة
+// تشغيل
 loadCustomers();
 loadProducts();
