@@ -104,9 +104,9 @@
     <tbody></tbody>
 </table>
 
-<!-- استدعاء Supabase بالطريقة الصحيحة -->
+<!-- استدعاء Supabase مع تحديث الكاش -->
 <script type="module">
-import { supabase } from "../supabase.js";
+import { supabase } from "../supabase.js?v=3";
 
 /* ============ إضافة عميل ============ */
 document.getElementById("saveCustomer").addEventListener("click", async () => {
@@ -138,10 +138,12 @@ async function loadCustomers() {
     const { data, error } = await supabase
         .from("customers")
         .select("*")
-        .order("id", { ascending: false });
+        .order("created_at", { ascending: false });
 
     const tbody = document.querySelector("#customersTable tbody");
     tbody.innerHTML = "";
+
+    if (!data) return;
 
     data.forEach(cust => {
         tbody.innerHTML += `
@@ -150,11 +152,11 @@ async function loadCustomers() {
                 <td>${cust.phone}</td>
                 <td>
 
-                    <button class="detail-btn" onclick="openDetails(${cust.id})">تفاصيل</button>
+                    <button class="detail-btn" onclick="openDetails('${cust.id}')">تفاصيل</button>
 
-                    <button class="trans-btn" onclick="openTransactions(${cust.id})">معاملات</button>
+                    <button class="trans-btn" onclick="openTransactions('${cust.id}')">معاملات</button>
 
-                    <button class="delete-btn" onclick="deleteCustomer(${cust.id})">حذف</button>
+                    <button class="delete-btn" onclick="deleteCustomer('${cust.id}')">حذف</button>
                 </td>
             </tr>
         `;
