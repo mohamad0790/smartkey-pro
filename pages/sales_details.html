@@ -49,6 +49,18 @@
         cursor: pointer;
     }
 
+    #scanBtn {
+        background: #28a745 !important;
+        font-size: 18px !important;
+    }
+
+    #cameraPreview {
+        width: 100%;
+        display: none;
+        border-radius: 10px;
+        margin-bottom: 10px;
+    }
+
     table {
         width: 100%;
         margin-top: 10px;
@@ -86,6 +98,12 @@
 <h2>🧾 إنشاء فاتورة جديدة</h2>
 
 <div class="box">
+
+    <!-- زر مسح الباركود -->
+    <button id="scanBtn">🔍 مسح الباركود بالكاميرا</button>
+
+    <!-- عرض الكاميرا -->
+    <video id="cameraPreview"></video>
 
     <label>اختر العميل:</label>
     <select id="customerSelect"></select>
@@ -126,7 +144,7 @@
     window.supabase = supabase;
 </script>
 
-<!-- ملف الجافاسكربت الصحيح -->
+<!-- ملف الجافاسكربت -->
 <script type="module" src="../js/sales_details.js?v=1"></script>
 
 </body>
