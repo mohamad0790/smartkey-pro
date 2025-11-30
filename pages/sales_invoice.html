@@ -3,100 +3,77 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>إنشاء فاتورة جديدة</title>
+<title>فاتورة مبيعات</title>
 
 <style>
     body {
-        font-family: "Tajawal", Arial;
+        font-family: "Tajawal", sans-serif;
         background: #f5f5f5;
         margin: 0;
-        padding: 15px;
-        text-align: center;
+        padding: 20px;
     }
-
-    h2 {
-        color: #333;
-        margin-bottom: 15px;
-    }
-
-    .box {
+    .invoice-box {
+        max-width: 800px;
         background: #fff;
-        padding: 15px;
+        margin: auto;
+        padding: 20px;
         border-radius: 12px;
         box-shadow: 0 0 10px #ccc;
-        margin: auto;
-        max-width: 600px;
+    }
+    h2 {
+        text-align: center;
+        color: #333;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+    th, td {
+        padding: 10px;
+        border: 1px solid #ccc;
+        text-align: center;
+    }
+    th {
+        background: #eee;
+    }
+    .total-box {
+        font-size: 22px;
+        font-weight: bold;
+        margin-top: 15px;
+        text-align: left;
     }
 
-    select, input {
-        width: 100%;
-        padding: 10px;
-        margin-top: 10px;
-        border-radius: 6px;
-        border: 1px solid #ccc;
-        font-size: 16px;
+    .buttons {
+        margin-top: 20px;
+        text-align: center;
     }
 
     button {
-        width: 100%;
-        padding: 12px;
-        background: #007bff;
-        border: none;
-        color: #fff;
-        font-size: 17px;
-        border-radius: 8px;
-        margin-top: 10px;
-    }
-
-    table {
-        width: 100%;
-        margin-top: 10px;
-        border-collapse: collapse;
-    }
-
-    th, td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: center;
-    }
-
-    .totalBox {
-        background: #d9ffd9;
-        padding: 12px;
-        margin-top: 15px;
-        border-radius: 8px;
+        padding: 12px 20px;
         font-size: 18px;
-        font-weight: bold;
+        border: none;
+        background: #007bff;
+        color: #fff;
+        border-radius: 8px;
+        cursor: pointer;
+        margin: 5px;
     }
 
-    .delete-btn {
-        background: red;
-        color: white;
-        padding: 6px 10px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
+    #qrcode {
+        margin: 20px auto;
+        width: fit-content;
     }
 </style>
 </head>
 
 <body>
 
-<h2>🧾 إنشاء فاتورة جديدة</h2>
+<div class="invoice-box">
 
-<div class="box">
+    <h2>فاتورة مبيعات</h2>
 
-    <label>اختر العميل:</label>
-    <select id="customerSelect"></select>
-
-    <label>اختر المنتج:</label>
-    <select id="productSelect"></select>
-
-    <input type="text" id="barcodeInput" placeholder="📷 باركود المنتج (اختياري)">
-    <input type="number" id="qty" placeholder="الكمية">
-    <input type="number" id="discount" placeholder="الخصم (اختياري)">
-
-    <button onclick="addItem()">➕ إضافة للفاتورة</button>
+    <div id="invoiceInfo"></div>
 
     <table>
         <thead>
@@ -105,28 +82,93 @@
                 <th>الكمية</th>
                 <th>السعر</th>
                 <th>الإجمالي</th>
-                <th>حذف</th>
             </tr>
         </thead>
         <tbody id="itemsTable"></tbody>
     </table>
 
-    <div class="totalBox">
-        الإجمالي النهائي: <span id="totalFinal">0</span> ريال
-    </div>
+    <div class="total-box">الإجمالي النهائي: <span id="totalFinal">0</span> ريال</div>
 
-    <button onclick="saveInvoice()">💾 حفظ الفاتورة</button>
+    <div id="qrcode"></div>
+
+    <div class="buttons">
+        <button onclick="window.print()">🖨️ طباعة الفاتورة</button>
+    </div>
 
 </div>
 
-<!-- Supabase Connection -->
+<!-- استدعاء Supabase -->
 <script type="module">
-    import { supabase } from "../supabase.js";
-    window.supabase = supabase;
+import { supabase } from "../supabase.js?v=1";
+
+// قراءة ID الفاتورة من الرابط
+const urlParams = new URLSearchParams(window.location.search);
+const invoiceId = urlParams.get("id");
+
+if (!invoiceId) {
+    document.body.innerHTML = "<h2>❌ رقم الفاتورة غير موجود</h2>";
+}
+
+// تحميل بيانات الفاتورة
+async function loadInvoice() {
+    const { data: invoiceData, error: invErr } = await supabase
+        .from("sales_invoices")
+        .select("*, customers(name, phone)")
+        .eq("id", invoiceId)
+        .single();
+
+    const { data: itemsData, error: itemsErr } = await supabase
+        .from("sales")
+        .select("*, products(name, product_code)")
+        .eq("invoice_id", invoiceId);
+
+    if (invErr || itemsErr) {
+        document.body.innerHTML = "<h2>❌ حدث خطأ في تحميل الفاتورة</h2>";
+        return;
+    }
+
+    // تعبئة معلومات الفاتورة
+    document.getElementById("invoiceInfo").innerHTML = `
+        <p><strong>رقم الفاتورة:</strong> ${invoiceData.id}</p>
+        <p><strong>العميل:</strong> ${invoiceData.customers.name}</p>
+        <p><strong>الجوال:</strong> ${invoiceData.customers.phone}</p>
+        <p><strong>التاريخ:</strong> ${new Date(invoiceData.created_at).toLocaleString()}</p>
+    `;
+
+    // تعبئة الأصناف
+    let table = "";
+    let finalTotal = 0;
+
+    itemsData.forEach(item => {
+        let total = item.total;
+        finalTotal += total;
+
+        table += `
+            <tr>
+                <td>${item.products.product_code} - ${item.products.name}</td>
+                <td>${item.qty}</td>
+                <td>${item.price}</td>
+                <td>${total}</td>
+            </tr>
+        `;
+    });
+
+    document.getElementById("itemsTable").innerHTML = table;
+    document.getElementById("totalFinal").textContent = finalTotal;
+
+    // QR
+    new QRCode(document.getElementById("qrcode"), {
+        text: "فاتورة رقم: " + invoiceId,
+        width: 120,
+        height: 120
+    });
+}
+
+loadInvoice();
 </script>
 
-<!-- فاتورة JS -->
-<script type="module" src="../js/sales_details.js"></script>
+<!-- QR code مكتبة -->
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
 
 </body>
 </html>
