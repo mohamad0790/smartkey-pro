@@ -51,7 +51,7 @@
 
 <h2>إضافة فاتورة مبيعات</h2>
 
-<label>ابحث برقم الصنف</label>
+<label>ابحث برقم الصنف أو الباركود</label>
 <input type="text" id="productSearch" placeholder="اكتب رقم الصنف product_code...">
 
 <label>اختر المنتج</label>
@@ -84,11 +84,12 @@
 <button onclick="saveInvoice()">حفظ الفاتورة</button>
 
 <script type="module">
-    import { supabase } from "../supabase.js";
+    import { supabase } from "../supabase.js?v=1";
 
     let invoiceItems = [];
+    let products = [];
 
-    // تحميل المنتجات من Supabase
+    // تحميل المنتجات
     async function loadProducts() {
         const { data, error } = await supabase
             .from("products")
@@ -100,12 +101,14 @@
             return;
         }
 
+        products = data;
+
         let select = document.getElementById("productSelect");
         select.innerHTML = "<option value=''>اختر المنتج</option>";
 
         data.forEach(p => {
             select.innerHTML += `
-                <option value="${p.id}" 
+                <option value="${p.id}"
                         data-name="${p.name}"
                         data-price="${p.sell}"
                         data-code="${p.product_code}">
@@ -135,20 +138,20 @@
 
     // إضافة صنف للفاتورة
     window.addItem = function () {
-        let productSelect = document.getElementById("productSelect");
-        let productId = productSelect.value;
+        let select = document.getElementById("productSelect");
+        let productId = select.value;
 
         if (!productId) {
             alert("⚠️ اختر المنتج");
             return;
         }
 
+        let name = select.options[select.selectedIndex].dataset.name;
+        let price = Number(select.options[select.selectedIndex].dataset.price);
+        let code = select.options[select.selectedIndex].dataset.code;
+
         let qty = Number(document.getElementById("qty").value);
         let discount = Number(document.getElementById("discount").value) || 0;
-
-        let name = productSelect.options[productSelect.selectedIndex].dataset.name;
-        let price = Number(productSelect.options[productSelect.selectedIndex].dataset.price);
-        let code = productSelect.options[productSelect.selectedIndex].dataset.code;
 
         let total = (price * qty) - discount;
 
@@ -170,10 +173,10 @@
         let table = document.getElementById("itemsTable");
         table.innerHTML = "";
 
-        let totalFinal = 0;
+        let final = 0;
 
         invoiceItems.forEach((item, index) => {
-            totalFinal += item.total;
+            final += item.total;
 
             table.innerHTML += `
                 <tr>
@@ -187,18 +190,18 @@
             `;
         });
 
-        document.getElementById("totalFinal").textContent = totalFinal;
+        document.getElementById("totalFinal").textContent = final;
     }
 
-    // حذف صنف
-    window.removeItem = function (index) {
+    window.removeItem = function(index) {
         invoiceItems.splice(index, 1);
         renderTable();
     };
 
     // حفظ الفاتورة
     window.saveInvoice = async function () {
-        if (invoiceItems.length === 0) return alert("⚠️ لا توجد أصناف");
+        if (invoiceItems.length === 0)
+            return alert("⚠️ لا توجد أصناف");
 
         const { data, error } = await supabase
             .from("sales_invoices")
@@ -224,7 +227,7 @@
             }]);
         }
 
-        alert("تم حفظ الفاتورة بنجاح");
+        alert("تم حفظ الفاتورة 🔥");
         window.location.href = `sales_invoice.html?id=${invoiceId}`;
     };
 
