@@ -4,6 +4,9 @@ let customers = [];
 let products = [];
 let invoiceItems = [];
 
+let scannerActive = false;
+let video = document.getElementById("cameraPreview");
+
 // ------------------------------
 // تحميل العملاء
 // ------------------------------
@@ -58,7 +61,68 @@ async function loadProducts() {
 }
 
 // ------------------------------
-// البحث بالباركود
+// مسح الباركود بالكاميرا
+// ------------------------------
+import('https://cdn.jsdelivr.net/npm/@zxing/library@latest').then(lib => {
+    const { BrowserMultiFormatReader } = lib;
+    const codeReader = new BrowserMultiFormatReader();
+
+    document.getElementById("scanBtn").addEventListener("click", async () => {
+        if (scannerActive) {
+            codeReader.reset();
+            video.style.display = "none";
+            scannerActive = false;
+            return;
+        }
+
+        scannerActive = true;
+        video.style.display = "block";
+
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const camera = devices.find(d => d.kind === "videoinput");
+
+        if (!camera) {
+            alert("لا يوجد كاميرا!");
+            return;
+        }
+
+        codeReader.decodeFromVideoDevice(
+            camera.deviceId,
+            video,
+            (result, err) => {
+                if (result) {
+                    let barcode = result.text;
+                    console.log("Barcode:", barcode);
+                    scannerActive = false;
+                    video.style.display = "none";
+                    codeReader.reset();
+
+                    selectProductByBarcode(barcode);
+                }
+            }
+        );
+    });
+});
+
+// ------------------------------
+// اختيار المنتج أوتوماتيكياً بعد مسح الباركود
+// ------------------------------
+function selectProductByBarcode(barcode) {
+    let select = document.getElementById("productSelect");
+
+    for (let i = 0; i < select.options.length; i++) {
+        if (select.options[i].dataset.code === barcode) {
+            select.selectedIndex = i;
+            addItem();
+            return;
+        }
+    }
+
+    alert("❌ الباركود غير موجود في المنتجات");
+}
+
+// ------------------------------
+// البحث اليدوي بالباركود (اختياري)
 // ------------------------------
 document.getElementById("barcodeInput").addEventListener("input", function () {
     let code = this.value.trim();
@@ -112,7 +176,7 @@ window.addItem = function () {
 };
 
 // ------------------------------
-// عرض الصنف داخل الجدول
+// عرض الأصناف داخل الجدول
 // ------------------------------
 function renderTable() {
     let table = document.getElementById("itemsTable");
