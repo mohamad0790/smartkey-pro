@@ -37,10 +37,12 @@ async function loadProducts() {
 
     data.forEach(p => {
         select.innerHTML += `
-            <option value="${p.id}" 
-                    data-name="${p.name}" 
-                    data-price="${p.sell}" 
-                    data-code="${p.product_code}">
+            <option 
+                value="${p.id}" 
+                data-id="${p.id}"
+                data-name="${p.name}" 
+                data-price="${p.sell}" 
+                data-code="${p.product_code}">
                 ${p.product_code} — ${p.name} — (${p.sell} ريال)
             </option>`;
     });
@@ -98,7 +100,7 @@ function selectProductByBarcode(barcode) {
 // إضافة صنف
 window.addItem = function () {
     let select = document.getElementById("productSelect");
-    let productId = select.value;
+    let productId = Number(select.value); // مهم: int8
 
     if (!productId) return alert("اختر المنتج");
 
@@ -159,28 +161,33 @@ window.saveInvoice = async function () {
     let customerId = document.getElementById("customerSelect").value;
 
     if (!customerId) return alert("اختر العميل");
-
     if (invoiceItems.length === 0) return alert("لا توجد أصناف");
 
+    // إنشاء الفاتورة
     const { data, error } = await supabase
         .from("sales_invoices")
-        .insert([{ customer_id: customerId, created_at: new Date() }])
+        .insert([{ customer_id: customerId }])
         .select();
 
-    let invoiceId = data[0].id;
+    if (error) return alert("خطأ في إنشاء الفاتورة");
 
+    let invoiceId = data[0].id; // UUID
+
+    // إدخال الأصناف
     for (let item of invoiceItems) {
-        await supabase.from("sales").insert([{
+        const { error: err2 } = await supabase.from("sales").insert([{
             invoice_id: invoiceId,
-            product_id: item.product_id,
+            product_id: item.product_id,  // int8
             qty: item.qty,
             price: item.price,
             discount: item.discount,
             total: item.total
         }]);
+
+        if (err2) console.error(err2);
     }
 
-    alert("تم حفظ الفاتورة");
+    alert("✅ تم حفظ الفاتورة بنجاح");
     window.location.href = `sales_invoice.html?id=${invoiceId}`;
 };
 
