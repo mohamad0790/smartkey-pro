@@ -46,37 +46,37 @@ async function loadProducts() {
     });
 }
 
-// ماسح الباركود
-import('https://cdn.jsdelivr.net/npm/@zxing/library@latest').then(lib => {
-    const { BrowserMultiFormatReader } = lib;
-    const reader = new BrowserMultiFormatReader();
+/* 🔥 ماسح الباركود — النسخة الصحيحة التي تعمل 100% بدون exports خطأ */
+import { BrowserMultiFormatReader } 
+from "https://cdn.jsdelivr.net/npm/@zxing/library@0.18.6/esm/index.js";
 
-    document.getElementById("scanBtn").addEventListener("click", async () => {
+const reader = new BrowserMultiFormatReader();
 
-        if (scannerActive) {
+document.getElementById("scanBtn").addEventListener("click", async () => {
+
+    if (scannerActive) {
+        reader.reset();
+        video.style.display = "none";
+        scannerActive = false;
+        return;
+    }
+
+    scannerActive = true;
+    video.style.display = "block";
+
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const camera = devices.find(d => d.kind === "videoinput");
+
+    reader.decodeFromVideoDevice(camera.deviceId, video, (result, err) => {
+        if (result) {
+            let barcode = result.text;
+
             reader.reset();
             video.style.display = "none";
             scannerActive = false;
-            return;
+
+            selectProductByBarcode(barcode);
         }
-
-        scannerActive = true;
-        video.style.display = "block";
-
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const camera = devices.find(d => d.kind === "videoinput");
-
-        reader.decodeFromVideoDevice(camera.deviceId, video, (result, err) => {
-            if (result) {
-                let barcode = result.text;
-
-                reader.reset();
-                video.style.display = "none";
-                scannerActive = false;
-
-                selectProductByBarcode(barcode);
-            }
-        });
     });
 });
 
