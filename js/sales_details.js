@@ -15,7 +15,7 @@ async function loadCustomers() {
     let select = document.getElementById("customerSelect");
     select.innerHTML = "<option value=''>اختر العميل</option>";
 
-    if (error) return alert("خطأ في تحميل العملاء");
+    if (error) return alert("⚠️ خطأ في تحميل العملاء");
 
     customers = data;
 
@@ -31,7 +31,7 @@ async function loadProducts() {
     let select = document.getElementById("productSelect");
     select.innerHTML = "<option value=''>اختر المنتج</option>";
 
-    if (error) return alert("خطأ في تحميل المنتجات");
+    if (error) return alert("⚠️ خطأ في تحميل المنتجات");
 
     products = data;
 
@@ -158,29 +158,39 @@ window.removeItem = function (index) {
 window.saveInvoice = async function () {
     let customerId = document.getElementById("customerSelect").value;
 
-    if (!customerId) return alert("اختر العميل");
+    if (!customerId) return alert("⚠️ اختر العميل");
+    if (invoiceItems.length === 0) return alert("⚠️ لا توجد أصناف");
 
-    if (invoiceItems.length === 0) return alert("لا توجد أصناف");
+    // حساب الإجمالي
+    let total = invoiceItems.reduce((sum, i) => sum + i.total, 0);
 
+    // إنشاء الفاتورة
     const { data, error } = await supabase
         .from("sales_invoices")
-        .insert([{ customer_id: customerId, created_at: new Date() }])
+        .insert([{
+            customer_id: customerId,
+            total_amount: total,
+            created_at: new Date()
+        }])
         .select();
+
+    if (error || !data) return alert("❌ خطأ في حفظ الفاتورة");
 
     let invoiceId = data[0].id;
 
+    // حفظ تفاصيل الأصناف
     for (let item of invoiceItems) {
-        await supabase.from("sales").insert([{
-            invoice_id: invoiceId,
+        await supabase.from("sale_items").insert([{
+            sale_id: invoiceId,
             product_id: item.product_id,
-            qty: item.qty,
-            price: item.price,
-            discount: item.discount,
-            total: item.total
+            quantity: item.qty,
+            price: item.price
         }]);
     }
 
-    alert("تم حفظ الفاتورة");
+    alert("✔️ تم حفظ الفاتورة بنجاح!");
+
+    // الانتقال لصفحة الفاتورة
     window.location.href = `sales_invoice.html?id=${invoiceId}`;
 };
 
