@@ -1,86 +1,66 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartKey Pro | الصفحة الرئيسية</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartKey Pro | القائمة الرئيسية</title>
 
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Tajawal, sans-serif;
-            background: #000;
-            color: #fff;
-            text-align: center;
-        }
-
-        h1 {
-            margin: 20px 0;
-            color: gold;
-            font-size: 28px;
-        }
-
-        .container {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            padding: 20px;
-        }
-
-        .box {
-            background: #111;
-            border: 2px solid gold;
-            border-radius: 10px;
-            padding: 25px 10px;
-            cursor: pointer;
-            transition: 0.3s;
-            font-size: 18px;
-        }
-
-        .box:hover {
-            background: #222;
-        }
-    </style>
+<style>
+    body {
+        margin:0;
+        padding:0;
+        background:#000;
+        color:#fff;
+        font-family:Tajawal, sans-serif;
+        text-align:center;
+    }
+    h1 {
+        color:gold;
+        margin-top:30px;
+        font-size:28px;
+        font-weight:bold;
+    }
+    .btn {
+        display:block;
+        width:80%;
+        margin:10px auto;
+        padding:15px;
+        font-size:20px;
+        font-weight:bold;
+        background:gold;
+        color:#000;
+        border:none;
+        border-radius:12px;
+        cursor:pointer;
+        text-decoration:none;
+    }
+    .btn:hover {
+        background:#ffdd55;
+    }
+</style>
 </head>
 
 <body>
 
-    <h1>✨ SmartKey Pro</h1>
+<h1>🔐 SmartKey Pro</h1>
+<h1>القائمة الرئيسية</h1>
 
-    <div class="container">
+<a href="pages/customers.html" class="btn">👥 العملاء</a>
+<a href="pages/customer_add.html" class="btn">➕ إضافة عميل</a>
 
-        <!-- يفتح قائمة المنتجات الجديدة -->
-        <div class="box" onclick="location.href='pages/products.html'">
-            📦 قائمة المنتجات
-        </div>
+<a href="pages/products.html" class="btn">📦 المنتجات</a>
+<a href="pages/product_add.html" class="btn">➕ إضافة منتج</a>
 
-        <div class="box" onclick="location.href='pages/product_add.html'">
-            ➕ إضافة صنف
-        </div>
+<a href="pages/barcode.html" class="btn">🏷️ طباعة باركود</a>
 
-        <div class="box" onclick="location.href='pages/sales_details.html'">
-            🧾 الفواتير
-        </div>
+<a href="pages/sales_invoice.html" class="btn">🧾 إصدار فاتورة</a>
+<a href="pages/sales_details.html" class="btn">🧾 مبيعات (تفاصيل)</a>
 
-        <div class="box" onclick="location.href='pages/sales.html'">
-            💰 المبيعات
-        </div>
+<a href="pages/customer_ledger.html" class="btn">📈 مديونيات العملاء</a>
 
-        <div class="box" onclick="location.href='pages/purchases.html'">
-            🛒 المشتريات
-        </div>
+<a href="pages/customer_debts.html" class="btn">💰 كشف الحساب</a>
 
-        <div class="box" onclick="location.href='pages/customers.html'">
-            👤 العملاء
-        </div>
-
-        <div class="box" onclick="location.href='pages/sellers.html'">
-            👨‍🔧 البائعين
-        </div>
-
-    </div>
+<a href="pages/login.html" class="btn">🔐 تسجيل الدخول</a>
 
 </body>
 </html>
