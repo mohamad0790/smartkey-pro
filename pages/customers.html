@@ -54,25 +54,32 @@
         color:gold;
     }
     .delete-btn {
-        background:red;
+        background:#ff2d2d;
         color:white;
         padding:5px 10px;
-        border-radius:5px;
+        border-radius:6px;
         cursor:pointer;
+        font-weight:bold;
     }
     .detail-btn {
         background:#0a84ff;
         color:white;
         padding:5px 10px;
-        border-radius:5px;
+        border-radius:6px;
         cursor:pointer;
     }
     .trans-btn {
         background:#14c400;
         color:white;
         padding:5px 10px;
-        border-radius:5px;
+        border-radius:6px;
         cursor:pointer;
+    }
+    #countBox {
+        text-align:right;
+        color:gold;
+        font-size:18px;
+        margin-top:10px;
     }
 </style>
 </head>
@@ -83,15 +90,17 @@
 
 <div style="background:#111; border:1px solid gold; padding:15px; border-radius:10px;">
     <label>اسم العميل:</label>
-    <input type="text" id="customerName">
+    <input type="text" id="customerName" placeholder="اكتب الاسم">
 
     <label>رقم الجوال:</label>
-    <input type="text" id="customerPhone">
+    <input type="text" id="customerPhone" placeholder="05xxxxxxxx" maxlength="10">
 
     <button id="saveCustomer">➕ حفظ العميل</button>
 </div>
 
 <h2>قائمة العملاء</h2>
+
+<div id="countBox"></div>
 
 <table id="customersTable">
     <thead>
@@ -104,7 +113,6 @@
     <tbody></tbody>
 </table>
 
-<!-- استدعاء Supabase بالطريقة الصحيحة -->
 <script type="module">
 import { supabase } from "../supabase.js";
 
@@ -113,11 +121,29 @@ document.getElementById("saveCustomer").addEventListener("click", async () => {
     const name = document.getElementById("customerName").value.trim();
     const phone = document.getElementById("customerPhone").value.trim();
 
+    // validation
     if (!name || !phone) {
         alert("⚠️ الرجاء إدخال الاسم ورقم الجوال");
         return;
     }
 
+    if (!/^05\d{8}$/.test(phone)) {
+        alert("⚠️ رقم الجوال يجب أن يبدأ بـ 05 ويتكون من 10 أرقام");
+        return;
+    }
+
+    // check duplicate
+    const { data: exist } = await supabase
+        .from("customers")
+        .select("id")
+        .eq("phone", phone);
+
+    if (exist && exist.length > 0) {
+        alert("⚠️ الرقم موجود مسبقاً لهذا العميل");
+        return;
+    }
+
+    // insert
     const { error } = await supabase
         .from("customers")
         .insert([{ name, phone, balance: 0 }]);
@@ -127,8 +153,10 @@ document.getElementById("saveCustomer").addEventListener("click", async () => {
         console.log(error);
     } else {
         alert("✅ تم إضافة العميل بنجاح");
+
         document.getElementById("customerName").value = "";
         document.getElementById("customerPhone").value = "";
+
         loadCustomers();
     }
 });
@@ -141,7 +169,12 @@ async function loadCustomers() {
         .order("id", { ascending: false });
 
     const tbody = document.querySelector("#customersTable tbody");
+    const countBox = document.getElementById("countBox");
+
+    if (!data) return;
+
     tbody.innerHTML = "";
+    countBox.innerHTML = `عدد العملاء: ${data.length}`;
 
     data.forEach(cust => {
         tbody.innerHTML += `
@@ -166,9 +199,17 @@ window.deleteCustomer = async function(id) {
     const ok = confirm("❗ هل تريد حذف هذا العميل؟");
     if (!ok) return;
 
-    await supabase.from("customers").delete().eq("id", id);
-    alert("🗑️ تم الحذف");
-    loadCustomers();
+    const { error } = await supabase
+        .from("customers")
+        .delete()
+        .eq("id", id);
+
+    if (error) {
+        alert("❌ فشل الحذف");
+    } else {
+        alert("🗑️ تم الحذف");
+        loadCustomers();
+    }
 };
 
 /* ============ صفحة تفاصيل العميل ============ */
