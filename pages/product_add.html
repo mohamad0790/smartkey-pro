@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
 <meta charset="UTF-8">
-<title>إضافة صنف جديد</title>
+<title>إضافة صنف جديد | SmartKey Pro</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -40,6 +41,17 @@
         margin-top:10px;
         cursor:pointer;
     }
+    #preview {
+        width:120px;
+        margin:auto;
+        margin-top:10px;
+        display:none;
+        border-radius:10px;
+    }
+    #uploadBtn {
+        background:#0a84ff;
+        margin-top:5px;
+    }
 </style>
 </head>
 
@@ -47,19 +59,79 @@
 
 <h2>📦 إضافة صنف جديد</h2>
 
-<input id="productCode" placeholder="كود الصنف">
+<input id="productCode" placeholder="كود الصنف (اختياري)">
 <input id="productName" placeholder="اسم الصنف">
 <input id="buyPrice" type="number" placeholder="سعر الشراء">
 <input id="sellPrice" type="number" placeholder="سعر البيع">
 <input id="quantity" type="number" placeholder="الكمية">
 
-<button id="addProduct">إضافة الصنف</button>
+<!-- رفع صورة المنتج -->
+<button id="uploadBtn">📸 رفع صورة المنتج</button>
+<input type="file" id="productImage" accept="image/*" style="display:none;">
+<img id="preview">
 
-<!-- استدعاء Supabase -->
+<button id="addProduct">💾 إضافة الصنف</button>
+
 <script type="module">
 import { supabase } from "../supabase.js";
 
-/* ========== إضافة صنف ========== */
+/* ========== اختيار الصورة وعرضها ========= */
+document.getElementById("uploadBtn").addEventListener("click", () => {
+    document.getElementById("productImage").click();
+});
+
+document.getElementById("productImage").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    document.getElementById("preview").src = URL.createObjectURL(file);
+    document.getElementById("preview").style.display = "block";
+});
+
+/* ========== توليد باركود فريد ========= */
+async function generateUniqueBarcode() {
+    let code;
+    let exists = true;
+
+    while (exists) {
+        code = "";
+        for (let i = 0; i < 8; i++) code += Math.floor(Math.random() * 10);
+
+        const { data } = await supabase
+            .from("products")
+            .select("id")
+            .eq("barcode", code);
+
+        exists = data && data.length > 0;
+    }
+
+    return code;
+}
+
+/* ========== رفع صورة إلى Storage ========= */
+async function uploadImage(file) {
+    if (!file) return null;
+
+    const fileName = Date.now() + "_" + file.name;
+
+    const { error } = await supabase.storage
+        .from("products")
+        .upload(fileName, file);
+
+    if (error) {
+        console.log(error);
+        alert("⚠️ فشل رفع الصورة");
+        return null;
+    }
+
+    const { data } = await supabase.storage
+        .from("products")
+        .getPublicUrl(fileName);
+
+    return data.publicUrl;
+}
+
+/* ========== إضافة صنف ========= */
 document.getElementById("addProduct").addEventListener("click", async () => {
 
     let code = document.getElementById("productCode").value.trim();
@@ -67,31 +139,47 @@ document.getElementById("addProduct").addEventListener("click", async () => {
     let buy = Number(document.getElementById("buyPrice").value);
     let sell = Number(document.getElementById("sellPrice").value);
     let qty = Number(document.getElementById("quantity").value);
+    let file = document.getElementById("productImage").files[0];
 
     // تحقق من المدخلات
-    if (!code || !name || !buy || !sell || !qty) {
-        alert("⚠️ الرجاء تعبئة جميع الحقول بشكل صحيح");
+    if (!name || !buy || !sell || !qty) {
+        alert("⚠️ الرجاء تعبئة الحقول الأساسية");
         return;
     }
 
     if (buy <= 0 || sell <= 0 || qty <= 0) {
-        alert("⚠️ لا يمكن أن تكون القيم صفر أو أقل");
+        alert("⚠️ القيم يجب أن تكون أكبر من 0");
         return;
     }
 
-    // الباركود = هو نفسه كود الصنف
-    let barcode = code;
+    // توليد باركود إذا لم يتم إدخاله
+    let barcode = code || await generateUniqueBarcode();
+
+    // منع التكرار
+    const { data: exist } = await supabase
+        .from("products")
+        .select("id")
+        .eq("barcode", barcode);
+
+    if (exist && exist.length > 0) {
+        alert("⚠️ الباركود مستخدم مسبقاً");
+        return;
+    }
+
+    // رفع الصورة
+    let imageUrl = await uploadImage(file);
 
     // الإدخال في Supabase
     const { error } = await supabase
         .from("products")
         .insert([{
-            product_code: code,
+            product_code: code || null,
             name: name,
             buy: buy,
             sell: sell,
             quantity: qty,
-            barcode: barcode
+            barcode: barcode,
+            image_url: imageUrl
         }]);
 
     if (error) {
@@ -106,6 +194,8 @@ document.getElementById("addProduct").addEventListener("click", async () => {
         document.getElementById("buyPrice").value = "";
         document.getElementById("sellPrice").value = "";
         document.getElementById("quantity").value = "";
+        document.getElementById("productImage").value = "";
+        document.getElementById("preview").style.display = "none";
 
         // تحويل تلقائي لصفحة المنتجات
         setTimeout(() => {
