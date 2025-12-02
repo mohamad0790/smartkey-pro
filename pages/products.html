@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
 <meta charset="UTF-8">
-<title>قائمة المنتجات</title>
+<title>قائمة المنتجات | SmartKey Pro</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -27,6 +28,12 @@
         font-size:16px;
         font-weight:bold;
         margin:5px;
+    }
+    .editBtn {
+        background:#ff9500;
+        color:#fff;
+        padding:6px 10px;
+        border-radius:8px;
     }
     table {
         width:100%;
@@ -56,18 +63,25 @@
 
     .barcode-card {
         width: 30mm;
-        height: 20mm;
+        height: 18mm;
         border: 1px solid #000;
         padding: 2px;
         text-align:center;
-        font-size:10px;
+        font-size:9px;
         box-sizing:border-box;
-        margin:2px auto;
+        margin:1px auto;
     }
 
     .barcode-card canvas {
         width:100%;
-        height:12mm;
+        height:10mm;
+    }
+
+    #loading {
+        display:none;
+        font-size:20px;
+        color:gold;
+        margin-top:20px;
     }
 
     @media print {
@@ -77,7 +91,6 @@
     }
 </style>
 
-<!-- مكتبة الباركود -->
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 
 </head>
@@ -91,6 +104,8 @@
     <button onclick="printAllBarcodes()" style="background:#0a84ff;color:white;">🖨️ طباعة كل الباركود</button>
 </div>
 
+<div id="loading">🔄 جاري التحميل...</div>
+
 <table>
 <thead>
 <tr>
@@ -101,7 +116,7 @@
     <th>بيع</th>
     <th>كمية</th>
     <th>باركود</th>
-    <th>طباعة</th>
+    <th>تحكم</th>
 </tr>
 </thead>
 <tbody id="productsTable"></tbody>
@@ -110,6 +125,7 @@
 <!-- منطقة الطباعة -->
 <div id="printArea"></div>
 
+
 <script type="module">
 import { supabase } from "../supabase.js";
 
@@ -117,19 +133,23 @@ let allProducts = [];
 
 /* ============ تحميل المنتجات ============ */
 async function loadProducts() {
+
+    document.getElementById("loading").style.display = "block";
+
     const { data, error } = await supabase
         .from("products")
-        .select("*");
+        .select("*")
+        .order("id", { ascending:false });
 
     if (error) {
-        alert("خطأ في تحميل المنتجات");
+        alert("❌ خطأ في تحميل المنتجات");
         return;
     }
 
-    // توليد باركود إذا المنتج لم يحصل على باركود
+    // توليد باركود في حال عدم وجوده
     for (let p of data) {
         if (!p.barcode) {
-            let newCode = generateBarcode();
+            let newCode = await generateUniqueBarcode();
             await supabase
                 .from("products")
                 .update({ barcode: newCode })
@@ -139,15 +159,31 @@ async function loadProducts() {
     }
 
     allProducts = data;
+
     displayProducts();
+
+    document.getElementById("loading").style.display = "none";
 }
 
-/* ============ توليد باركود 8 أرقام ============ */
-function generateBarcode() {
-    let code = "";
-    for (let i = 0; i < 8; i++) {
-        code += Math.floor(Math.random() * 10);
+/* ============ توليد باركود فريد ============ */
+async function generateUniqueBarcode() {
+    let code;
+    let exists = true;
+
+    while (exists) {
+        code = "";
+        for (let i = 0; i < 8; i++) {
+            code += Math.floor(Math.random() * 10);
+        }
+
+        const { data } = await supabase
+            .from("products")
+            .select("id")
+            .eq("barcode", code);
+
+        exists = data && data.length > 0;
     }
+
     return code;
 }
 
@@ -160,20 +196,26 @@ function displayProducts() {
         table.innerHTML += `
         <tr>
             <td>${p.image_url ? `<img src="${p.image_url}" width="50">` : "—"}</td>
-            <td>${p.product_code}</td>
+            <td>${p.product_code || "—"}</td>
             <td>${p.name}</td>
             <td>${p.buy}</td>
             <td>${p.sell}</td>
             <td>${p.quantity}</td>
             <td>${p.barcode}</td>
+
             <td>
-                <button class="barcode-button" onclick="printSingle('${p.name}','${p.barcode}')">
-                    🖨️
-                </button>
+                <button class="barcode-button" onclick="printSingle('${p.name}','${p.barcode}')">🖨️</button>
+                <button class="editBtn" onclick="editProduct(${p.id})">✏️</button>
             </td>
         </tr>`;
     });
 }
+
+/* ============ تحرير منتج ============ */
+window.editProduct = function(id) {
+    localStorage.setItem("editProduct", id);
+    location.href = "product_edit.html";
+};
 
 /* ============ طباعة باركود منتج واحد ============ */
 window.printSingle = function(name, barcode) {
@@ -188,7 +230,7 @@ window.printSingle = function(name, barcode) {
         </div>
     `;
 
-    JsBarcode("#oneBarcode", barcode, { format: "CODE128", displayValue: false });
+    JsBarcode("#oneBarcode", barcode, { format: "CODE128", displayValue: false, margin:0 });
 
     window.print();
 };
@@ -198,6 +240,11 @@ window.printAllBarcodes = function () {
     const area = document.getElementById("printArea");
     area.innerHTML = "";
 
+    if (allProducts.length === 0) {
+        alert("⚠️ لا توجد منتجات للطباعة");
+        return;
+    }
+
     allProducts.forEach(p => {
         area.innerHTML += `
             <div class="barcode-card">
@@ -206,13 +253,17 @@ window.printAllBarcodes = function () {
                 <div>${p.barcode}</div>
             </div>
         `;
-
-        setTimeout(() => {
-            JsBarcode(`#b${p.id}`, p.barcode, { format: "CODE128", displayValue: false });
-        }, 50);
     });
 
-    window.print();
+    setTimeout(() => {
+        allProducts.forEach(p => {
+            JsBarcode(`#b${p.id}`, p.barcode, { format: "CODE128", displayValue: false, margin:0 });
+        });
+
+        window.print();
+        alert("✔️ تم تجهيز كافة الباركودات للطباعة");
+
+    }, 200);
 };
 
 loadProducts();
